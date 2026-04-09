@@ -32,6 +32,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(compose.materialIconsExtended)
             // CMP Navigation
             implementation(libs.navigation.compose)
             // Koin Compose
@@ -50,11 +51,21 @@ kotlin {
             implementation(libs.maps.compose)
             implementation(libs.play.services.maps)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.credentials)
+            implementation(libs.credentials.play.services)
+            implementation(libs.googleid)
         }
 
         // iosMain uses MapKit via UIKitView — no extra Gradle deps needed
     }
 }
+
+val mapsApiKey: String = rootProject.file("local.properties")
+    .takeIf { it.exists() }
+    ?.readLines()
+    ?.firstOrNull { it.startsWith("MAPS_API_KEY=") }
+    ?.substringAfter("=")
+    ?: ""
 
 android {
     namespace = "com.runtheworld"
@@ -71,13 +82,6 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        // Read the Maps API key from local.properties at build time
-        val mapsApiKey = rootProject.file("local.properties")
-            .takeIf { it.exists() }
-            ?.readLines()
-            ?.firstOrNull { it.startsWith("MAPS_API_KEY=") }
-            ?.substringAfter("=")
-            ?: ""
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 

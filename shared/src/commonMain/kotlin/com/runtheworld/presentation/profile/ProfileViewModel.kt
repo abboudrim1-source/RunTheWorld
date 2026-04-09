@@ -54,6 +54,11 @@ class ProfileViewModel(
         _state.update { it.copy(isSaved = true) }
     }
 
+    fun logout() {
+        userProfileRepository.clearProfile()
+        _state.update { ProfileState() }
+    }
+
     fun loadExistingProfile() {
         val profile = userProfileRepository.getProfile() ?: return
         _state.update {

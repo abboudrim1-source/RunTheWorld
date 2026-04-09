@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +19,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MapScreen(
     onStartRun: () -> Unit,
     onHistory: () -> Unit,
+    onLogout: () -> Unit,
     viewModel: MapViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -30,6 +32,20 @@ fun MapScreen(
             currentPath = emptyList(),
             userLocation = null
         )
+
+        // Logout button — top right
+        IconButton(
+            onClick = onLogout,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        ) {
+            Icon(
+                Icons.Default.Logout,
+                contentDescription = "Logout",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
 
         // Top overlay — territory count
         if (!state.isLoading) {

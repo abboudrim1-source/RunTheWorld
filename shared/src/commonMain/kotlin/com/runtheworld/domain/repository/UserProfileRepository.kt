@@ -7,4 +7,5 @@ interface UserProfileRepository {
     fun saveProfile(profile: UserProfile)
     fun isProfileSetUp(): Boolean
     fun updateStats(additionalAreaKm2: Double)
+    fun clearProfile()
 }

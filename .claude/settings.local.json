@@ -4,7 +4,9 @@
       "Bash(./gradlew assembleDebug)",
       "Bash(./gradlew :app:assembleDebug)",
       "Bash(java -version)",
-      "Bash(where java:*)"
+      "Bash(where java:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }

@@ -11,6 +11,7 @@ import com.runtheworld.domain.model.Territory
 import com.runtheworld.platform.LocationService
 import com.runtheworld.util.ConvexHull
 import com.runtheworld.util.DistanceCalculator
+import com.runtheworld.util.onError
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

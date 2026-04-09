@@ -25,6 +25,13 @@ class UserProfileRepositoryImpl(private val settings: Settings) : UserProfileRep
         settings.putInt(KEY_RUN_COUNT, profile.runCount)
     }
 
+    override fun clearProfile() {
+        settings.remove(KEY_USERNAME)
+        settings.remove(KEY_COLOR)
+        settings.remove(KEY_TOTAL_AREA)
+        settings.remove(KEY_RUN_COUNT)
+    }
+
     override fun updateStats(additionalAreaKm2: Double) {
         val current = getProfile() ?: return
         saveProfile(

@@ -25,6 +25,7 @@ actual val platformModule: Module = module {
     // DAOs — sourced from the single AppDatabase instance
     single { get<AppDatabase>().runDao() }
     single { get<AppDatabase>().territoryDao() }
+    single { get<AppDatabase>().userAccountDao() }
 
     // Location
     single<LocationService> { AndroidLocationService(androidContext()) }

@@ -26,6 +26,7 @@ actual val platformModule: Module = module {
 
     single { get<AppDatabase>().runDao() }
     single { get<AppDatabase>().territoryDao() }
+    single { get<AppDatabase>().userAccountDao() }
 
     // Location
     single<LocationService> { IosLocationService() }
