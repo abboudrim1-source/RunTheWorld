@@ -6,7 +6,8 @@
       "Bash(java -version)",
       "Bash(where java:*)",
       "Bash(git push:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(./gradlew :app:compileDebugKotlinAndroid)"
     ]
   }
 }

@@ -1,17 +1,16 @@
 package com.runtheworld.presentation.profile
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.runtheworld.domain.model.UserProfile
 import com.runtheworld.domain.repository.UserProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 data class ProfileState(
     val username: String = "",
+    val displayName: String = "",
     val selectedColorHex: String = "#FF5733",
     val isSaved: Boolean = false,
     val error: String? = null
@@ -35,6 +34,10 @@ class ProfileViewModel(
         _state.update { it.copy(username = value, error = null) }
     }
 
+    fun onDisplayNameChange(value: String) {
+        _state.update { it.copy(displayName = value, error = null) }
+    }
+
     fun onColorSelect(colorHex: String) {
         _state.update { it.copy(selectedColorHex = colorHex) }
     }
@@ -42,12 +45,13 @@ class ProfileViewModel(
     fun saveProfile() {
         val username = _state.value.username.trim()
         if (username.isBlank()) {
-            _state.update { it.copy(error = "Username cannot be empty") }
+            _state.update { it.copy(error = "Runner name cannot be empty") }
             return
         }
         userProfileRepository.saveProfile(
             UserProfile(
                 username = username,
+                displayName = _state.value.displayName.trim(),
                 colorHex = _state.value.selectedColorHex
             )
         )
@@ -64,8 +68,14 @@ class ProfileViewModel(
         _state.update {
             it.copy(
                 username = profile.username,
-                selectedColorHex = profile.colorHex
+                displayName = profile.displayName,
+                selectedColorHex = profile.colorHex,
+                isSaved = false
             )
         }
+    }
+
+    fun resetSaved() {
+        _state.update { it.copy(isSaved = false) }
     }
 }

@@ -12,18 +12,20 @@ import com.runtheworld.presentation.profile.ProfileViewModel
 import com.runtheworld.ui.auth.AuthScreen
 import com.runtheworld.ui.history.HistoryScreen
 import com.runtheworld.ui.map.MapScreen
+import com.runtheworld.ui.profile.ProfileScreen
 import com.runtheworld.ui.profile.ProfileSetupScreen
 import com.runtheworld.ui.run.RunScreen
 import com.runtheworld.ui.welcome.WelcomeScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 object Routes {
-    const val WELCOME      = "welcome"
-    const val AUTH         = "auth?signup={signup}"
+    const val WELCOME       = "welcome"
+    const val AUTH          = "auth?signup={signup}"
     const val PROFILE_SETUP = "profile_setup"
-    const val MAP          = "map"
-    const val RUN          = "run"
-    const val HISTORY      = "history"
+    const val MAP           = "map"
+    const val RUN           = "run"
+    const val HISTORY       = "history"
+    const val PROFILE       = "profile"
 
     fun auth(signUp: Boolean) = "auth?signup=$signUp"
 }
@@ -40,7 +42,7 @@ fun RunTheWorldNavHost(
 
         composable(Routes.WELCOME) {
             WelcomeScreen(
-                onSignIn      = { navController.navigate(Routes.auth(signUp = false)) },
+                onSignIn        = { navController.navigate(Routes.auth(signUp = false)) },
                 onCreateAccount = { navController.navigate(Routes.auth(signUp = true)) }
             )
         }
@@ -81,12 +83,7 @@ fun RunTheWorldNavHost(
             MapScreen(
                 onStartRun = { navController.navigate(Routes.RUN) },
                 onHistory  = { navController.navigate(Routes.HISTORY) },
-                onLogout   = {
-                    profileViewModel.logout()
-                    authViewModel.signOut {
-                        navController.navigate(Routes.WELCOME) { popUpTo(0) { inclusive = true } }
-                    }
-                }
+                onProfile  = { navController.navigate(Routes.PROFILE) }
             )
         }
 
@@ -103,6 +100,18 @@ fun RunTheWorldNavHost(
 
         composable(Routes.HISTORY) {
             HistoryScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onSignOut = {
+                    profileViewModel.logout()
+                    authViewModel.signOut {
+                        navController.navigate(Routes.WELCOME) { popUpTo(0) { inclusive = true } }
+                    }
+                }
+            )
         }
     }
 }

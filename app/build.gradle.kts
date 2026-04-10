@@ -54,6 +54,8 @@ kotlin {
             implementation(libs.credentials)
             implementation(libs.credentials.play.services)
             implementation(libs.googleid)
+            // SceneView — Filament-based 3D/AR renderer for Compose
+            implementation(libs.sceneview)
         }
 
         // iosMain uses MapKit via UIKitView — no extra Gradle deps needed

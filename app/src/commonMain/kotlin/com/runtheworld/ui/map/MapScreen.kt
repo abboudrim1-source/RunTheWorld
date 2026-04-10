@@ -1,25 +1,34 @@
 package com.runtheworld.ui.map
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.runtheworld.presentation.map.MapViewModel
+import com.runtheworld.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MapScreen(
     onStartRun: () -> Unit,
     onHistory: () -> Unit,
-    onLogout: () -> Unit,
+    onProfile: () -> Unit,
     viewModel: MapViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -33,34 +42,45 @@ fun MapScreen(
             userLocation = null
         )
 
-        // Logout button — top right
-        IconButton(
-            onClick = onLogout,
+        // Profile button — top right (glass)
+        Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(8.dp)
+                .statusBarsPadding()
+                .padding(12.dp)
+                .size(44.dp)
+                .glassSurface(CircleShape)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = onProfile
+                ),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
-                Icons.Default.Logout,
-                contentDescription = "Logout",
-                tint = MaterialTheme.colorScheme.onSurface
+                Icons.Default.AccountCircle,
+                contentDescription = "Profile",
+                tint = Color.White,
+                modifier = Modifier.size(26.dp)
             )
         }
 
-        // Top overlay — territory count
+        // Territory count pill — top center (glass)
         if (!state.isLoading) {
-            Surface(
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.TopCenter),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                tonalElevation = 4.dp
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(top = 12.dp)
+                    .glassSurface(RoundedCornerShape(50.dp))
+                    .padding(horizontal = 18.dp, vertical = 9.dp)
             ) {
                 Text(
                     text = "${state.territories.size} territories claimed",
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    letterSpacing = 0.5.sp
                 )
             }
         }
@@ -69,32 +89,55 @@ fun MapScreen(
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(24.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                .navigationBarsPadding()
+                .padding(bottom = 28.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // History button
-            FilledTonalIconButton(
-                onClick = onHistory,
-                modifier = Modifier.size(52.dp)
+            // History button — glass circle
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .glassSurface(CircleShape)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = onHistory
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.History, contentDescription = "History")
+                Icon(
+                    Icons.Default.History,
+                    contentDescription = "History",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
             }
 
-            // Start run FAB
-            FloatingActionButton(
-                onClick = onStartRun,
-                containerColor = MaterialTheme.colorScheme.primary,
-                shape = CircleShape,
-                modifier = Modifier.size(68.dp)
+            // Start run FAB — gradient with glow
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .brandGlow(CircleShape, elevation = 24.dp)
+                    .clip(CircleShape)
+                    .background(BrandGradient)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = onStartRun
+                    ),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.DirectionsRun,
                     contentDescription = "Start run",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = Color.White,
+                    modifier = Modifier.size(36.dp)
                 )
             }
+
+            // Placeholder spacer (mirror of history button for centering)
+            Spacer(Modifier.size(52.dp))
         }
     }
 }

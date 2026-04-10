@@ -6,30 +6,43 @@ import com.russhwolf.settings.Settings
 
 class UserProfileRepositoryImpl(private val settings: Settings) : UserProfileRepository {
 
-    override fun isProfileSetUp(): Boolean = settings.getStringOrNull(KEY_USERNAME) != null
+    // Prefix all profile keys with the signed-in UID so each account has its own data
+    private fun prefix(): String {
+        val uid = settings.getStringOrNull("auth_uid") ?: "anonymous"
+        return "${uid}_"
+    }
+
+    override fun isProfileSetUp(): Boolean =
+        settings.getStringOrNull(prefix() + KEY_USERNAME) != null
 
     override fun getProfile(): UserProfile? {
-        val username = settings.getStringOrNull(KEY_USERNAME) ?: return null
+        val p = prefix()
+        val username = settings.getStringOrNull(p + KEY_USERNAME) ?: return null
         return UserProfile(
             username = username,
-            colorHex = settings.getString(KEY_COLOR, DEFAULT_COLOR),
-            totalAreaKm2 = settings.getDouble(KEY_TOTAL_AREA, 0.0),
-            runCount = settings.getInt(KEY_RUN_COUNT, 0)
+            displayName = settings.getString(p + KEY_DISPLAY_NAME, ""),
+            colorHex = settings.getString(p + KEY_COLOR, DEFAULT_COLOR),
+            totalAreaKm2 = settings.getDouble(p + KEY_TOTAL_AREA, 0.0),
+            runCount = settings.getInt(p + KEY_RUN_COUNT, 0)
         )
     }
 
     override fun saveProfile(profile: UserProfile) {
-        settings.putString(KEY_USERNAME, profile.username)
-        settings.putString(KEY_COLOR, profile.colorHex)
-        settings.putDouble(KEY_TOTAL_AREA, profile.totalAreaKm2)
-        settings.putInt(KEY_RUN_COUNT, profile.runCount)
+        val p = prefix()
+        settings.putString(p + KEY_USERNAME, profile.username)
+        settings.putString(p + KEY_DISPLAY_NAME, profile.displayName)
+        settings.putString(p + KEY_COLOR, profile.colorHex)
+        settings.putDouble(p + KEY_TOTAL_AREA, profile.totalAreaKm2)
+        settings.putInt(p + KEY_RUN_COUNT, profile.runCount)
     }
 
     override fun clearProfile() {
-        settings.remove(KEY_USERNAME)
-        settings.remove(KEY_COLOR)
-        settings.remove(KEY_TOTAL_AREA)
-        settings.remove(KEY_RUN_COUNT)
+        val p = prefix()
+        settings.remove(p + KEY_USERNAME)
+        settings.remove(p + KEY_DISPLAY_NAME)
+        settings.remove(p + KEY_COLOR)
+        settings.remove(p + KEY_TOTAL_AREA)
+        settings.remove(p + KEY_RUN_COUNT)
     }
 
     override fun updateStats(additionalAreaKm2: Double) {
@@ -43,10 +56,11 @@ class UserProfileRepositoryImpl(private val settings: Settings) : UserProfileRep
     }
 
     companion object {
-        private const val KEY_USERNAME = "profile_username"
-        private const val KEY_COLOR = "profile_color"
-        private const val KEY_TOTAL_AREA = "profile_total_area"
-        private const val KEY_RUN_COUNT = "profile_run_count"
-        private const val DEFAULT_COLOR = "#FF5733"
+        private const val KEY_USERNAME     = "profile_username"
+        private const val KEY_DISPLAY_NAME = "profile_display_name"
+        private const val KEY_COLOR        = "profile_color"
+        private const val KEY_TOTAL_AREA   = "profile_total_area"
+        private const val KEY_RUN_COUNT    = "profile_run_count"
+        private const val DEFAULT_COLOR    = "#FF5733"
     }
 }

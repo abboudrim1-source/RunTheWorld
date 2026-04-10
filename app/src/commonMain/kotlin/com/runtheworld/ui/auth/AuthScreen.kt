@@ -5,20 +5,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.runtheworld.presentation.auth.AuthViewModel
+import com.runtheworld.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -35,168 +34,216 @@ fun AuthScreen(
 
     val googleLauncher = rememberGoogleSignInLauncher(
         onSuccess = { user -> viewModel.signInWithGoogle(user.id, user.email, user.displayName) },
-        onError   = { msg  -> /* errors bubble through state */ }
+        onError   = { }
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = if (state.isSignUpMode) "Create Account" else "Sign In",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary
-        )
+    AppBackground {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
 
-        Spacer(Modifier.height(32.dp))
+            // Header
+            GradientText(
+                text = if (state.isSignUpMode) "CREATE\nACCOUNT" else "SIGN IN",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.ExtraBold,
+                gradient = BrandGradient
+            )
 
-        // Email
-        OutlinedTextField(
-            value = state.email,
-            onValueChange = viewModel::onEmailChange,
-            label = { Text("Email") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(Modifier.height(8.dp))
 
-        Spacer(Modifier.height(12.dp))
+            Text(
+                text = if (state.isSignUpMode) "Join the runners" else "Welcome back",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.5f),
+                letterSpacing = 0.5.sp
+            )
 
-        // Password
-        OutlinedTextField(
-            value = state.password,
-            onValueChange = viewModel::onPasswordChange,
-            label = { Text("Password") },
-            singleLine = true,
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(
-                        if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+            Spacer(Modifier.height(36.dp))
+
+            // Glass form card
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+
+                // Email
+                OutlinedTextField(
+                    value = state.email,
+                    onValueChange = viewModel::onEmailChange,
+                    label = { Text("Email") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(Icons.Default.Email, contentDescription = null,
+                            tint = NeonOrange.copy(alpha = 0.8f))
+                    },
+                    colors = authFieldColors(),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // Password
+                OutlinedTextField(
+                    value = state.password,
+                    onValueChange = viewModel::onPasswordChange,
+                    label = { Text("Password") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null,
+                            tint = NeonOrange.copy(alpha = 0.8f))
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None
+                    else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                if (passwordVisible) Icons.Default.VisibilityOff
+                                else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = Color.White.copy(alpha = 0.5f)
+                            )
+                        }
+                    },
+                    colors = authFieldColors(),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Password strength indicators (sign-up)
+                if (state.isSignUpMode && state.password.isNotEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+                    PasswordStrengthRow(password = state.password)
+                }
+
+                // Confirm password (sign-up)
+                if (state.isSignUpMode) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = state.confirmPassword,
+                        onValueChange = viewModel::onConfirmPasswordChange,
+                        label = { Text("Confirm password") },
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(Icons.Default.LockOpen, contentDescription = null,
+                                tint = NeonOrange.copy(alpha = 0.8f))
+                        },
+                        visualTransformation = PasswordVisualTransformation(),
+                        colors = authFieldColors(),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        // Password requirements (sign-up only)
-        if (state.isSignUpMode && state.password.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            PasswordRequirements(
-                password = state.password,
-                errors = state.passwordErrors
-            )
-        }
+                // Error message
+                if (state.error != null) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = state.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
 
-        // Confirm password (sign-up only)
-        if (state.isSignUpMode) {
-            Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = state.confirmPassword,
-                onValueChange = viewModel::onConfirmPasswordChange,
-                label = { Text("Confirm password") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+                Spacer(Modifier.height(24.dp))
 
-        // Error message
-        if (state.error != null) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = state.error!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
+                // Submit button
+                if (state.isLoading) {
+                    Box(Modifier.fillMaxWidth().height(54.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = NeonOrange, strokeWidth = 2.dp)
+                    }
+                } else {
+                    GradientButton(
+                        text = if (state.isSignUpMode) "CREATE ACCOUNT" else "SIGN IN",
+                        onClick = viewModel::submit,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-        Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(20.dp))
 
-        // Main action button
-        Button(
-            onClick = viewModel::submit,
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    if (state.isSignUpMode) "Create Account" else "Sign In",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                // Divider
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.15f)
+                    )
+                    Text(
+                        "  or  ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.3f)
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.15f)
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                // Google button
+                GlassButton(
+                    text = "Continue with Google",
+                    onClick = { googleLauncher() },
+                    enabled = !state.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.AccountCircle,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 )
             }
-        }
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
-        // Divider
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f))
-            Text("  or  ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
-            HorizontalDivider(modifier = Modifier.weight(1f))
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // Google Sign-In button
-        OutlinedButton(
-            onClick = { googleLauncher() },
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("Continue with Google", fontSize = 15.sp)
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        // Toggle mode
-        TextButton(onClick = viewModel::toggleMode) {
-            Text(
-                if (state.isSignUpMode) "Already have an account? Sign in"
-                else "No account? Create one",
-                style = MaterialTheme.typography.bodyMedium
-            )
+            // Toggle mode
+            TextButton(onClick = viewModel::toggleMode) {
+                Text(
+                    text = if (state.isSignUpMode) "Already have an account? Sign in"
+                    else "No account? Create one",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NeonOrange.copy(alpha = 0.9f)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun PasswordRequirements(password: String, errors: List<String>) {
-    val requirements = listOf(
-        "At least 8 characters"              to (password.length >= 8),
-        "At least 1 uppercase letter"        to password.any { it.isUpperCase() },
-        "At least 1 lowercase letter"        to password.any { it.isLowerCase() },
-        "At least 1 number"                  to password.any { it.isDigit() },
-        "At least 1 special character"       to password.any { !it.isLetterOrDigit() }
+private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = NeonOrange,
+    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+    focusedLabelColor = NeonOrange,
+    unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+    cursorColor = NeonOrange,
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White.copy(alpha = 0.9f)
+)
+
+@Composable
+private fun PasswordStrengthRow(password: String) {
+    val checks = listOf(
+        "8+ chars"    to (password.length >= 8),
+        "Uppercase"   to password.any { it.isUpperCase() },
+        "Lowercase"   to password.any { it.isLowerCase() },
+        "Number"      to password.any { it.isDigit() },
+        "Symbol"      to password.any { !it.isLetterOrDigit() }
     )
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        requirements.forEach { (label, met) ->
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(
-                    imageVector = if (met) Icons.Default.Check else Icons.Default.Close,
-                    contentDescription = null,
-                    tint = if (met) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (met) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
-            }
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        checks.forEach { (label, met) ->
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (met) NeonOrange else Color.White.copy(alpha = 0.3f),
+                fontWeight = if (met) FontWeight.Bold else FontWeight.Normal
+            )
         }
     }
 }
