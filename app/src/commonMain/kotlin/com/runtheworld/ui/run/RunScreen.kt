@@ -130,7 +130,7 @@ fun RunScreen(
                     .statusBarsPadding()
                     .padding(12.dp)
                     .size(44.dp)
-                    .glassSurface(CircleShape)
+                    .mapGlassSurface(CircleShape)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
@@ -200,7 +200,7 @@ fun RunScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
-                        .glassSurface(RoundedCornerShape(14.dp))
+                        .mapGlassSurface(RoundedCornerShape(14.dp))
                         .padding(16.dp)
                 ) {
                     Text(state.error ?: "An error occurred.",
@@ -218,7 +218,7 @@ fun RunScreen(
 private fun RunStatsOverlay(state: RunState, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .glassSurface(RoundedCornerShape(20.dp))
+            .mapGlassSurface(RoundedCornerShape(20.dp))
             .padding(horizontal = 28.dp, vertical = 14.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {

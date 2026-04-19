@@ -67,6 +67,13 @@ fun Modifier.glassSurface(
     .background(Color(0x22FFFFFF))
     .border(width = 1.dp, brush = GlassBorderBrush, shape = shape)
 
+fun Modifier.mapGlassSurface(
+    shape: Shape = RoundedCornerShape(20.dp)
+): Modifier = this
+    .clip(shape)
+    .background(Color(0xCC0D0D2B))
+    .border(width = 1.dp, brush = GlassBorderBrush, shape = shape)
+
 fun Modifier.brandGlow(
     shape: Shape = RoundedCornerShape(14.dp),
     elevation: Dp = 20.dp

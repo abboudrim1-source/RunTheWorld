@@ -49,7 +49,7 @@ fun MapScreen(
                 .statusBarsPadding()
                 .padding(12.dp)
                 .size(44.dp)
-                .glassSurface(CircleShape)
+                .mapGlassSurface(CircleShape)
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
@@ -72,7 +72,7 @@ fun MapScreen(
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
                     .padding(top = 12.dp)
-                    .glassSurface(RoundedCornerShape(50.dp))
+                    .mapGlassSurface(RoundedCornerShape(50.dp))
                     .padding(horizontal = 18.dp, vertical = 9.dp)
             ) {
                 Text(
@@ -98,7 +98,7 @@ fun MapScreen(
             Box(
                 modifier = Modifier
                     .size(52.dp)
-                    .glassSurface(CircleShape)
+                    .mapGlassSurface(CircleShape)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
