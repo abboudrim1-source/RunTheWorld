@@ -1,0 +1,15 @@
+### Create a New Profile
+POST http://localhost:8080/profiles
+Content-Type: application/json
+
+{
+  "uid": "user_123",
+  "username": "tester",
+  "displayName": "Test User",
+  "colorHex": "#FF0000",
+  "totalAreaKm2": 10.5,
+  "runCount": 3
+}
+
+### Get All Profiles
+GET http://localhost:8080/profiles

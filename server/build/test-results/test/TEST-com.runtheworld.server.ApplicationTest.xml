@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.runtheworld.server.ApplicationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-04-19T20:53:57" hostname="DESKTOP-G3N0HFJ" time="2.09">
+  <properties/>
+  <testcase name="testRoot" classname="com.runtheworld.server.ApplicationTest" time="1.932"/>
+  <testcase name="testProfileSync" classname="com.runtheworld.server.ApplicationTest" time="0.127"/>
+  <testcase name="testGetProfiles" classname="com.runtheworld.server.ApplicationTest" time="0.03"/>
+  <system-out><![CDATA[23:53:58.855 [DefaultDispatcher-worker-2 @call-context#3] INFO io.ktor.test -- No ktor.deployment.watch patterns specified, automatic reload is not active.
+23:53:59.384 [DefaultDispatcher-worker-2 @call-context#3] DEBUG Exposed -- CREATE TABLE IF NOT EXISTS profiles (uid VARCHAR(64) NOT NULL PRIMARY KEY, username VARCHAR(64) NOT NULL, display_name VARCHAR(255) NOT NULL, color_hex VARCHAR(16) NOT NULL, total_area_km2 DOUBLE PRECISION DEFAULT 0.0 NOT NULL, run_count INT DEFAULT 0 NOT NULL, CONSTRAINT chk_profiles_signed_integer_run_count CHECK (run_count BETWEEN -2147483648 AND 2147483647))
+23:53:59.385 [DefaultDispatcher-worker-2 @call-context#3] DEBUG Exposed -- CREATE TABLE IF NOT EXISTS runs (id VARCHAR(64) NOT NULL PRIMARY KEY, user_id VARCHAR(64) NOT NULL, distance_meters DOUBLE PRECISION NOT NULL, duration_seconds BIGINT NOT NULL, area_km2 DOUBLE PRECISION NOT NULL, created_at BIGINT NOT NULL)
+23:53:59.412 [DefaultDispatcher-worker-2 @call-context#3] INFO io.ktor.test -- Application started in 0.578 seconds.
+23:53:59.415 [DefaultDispatcher-worker-3 @coroutine#4] INFO io.ktor.test -- Responding at http://localhost:80
+23:53:59.415 [DefaultDispatcher-worker-3 @coroutine#4] INFO io.ktor.test -- Responding at https://localhost:443
+23:53:59.611 [DefaultDispatcher-worker-5 @call-context#15] INFO io.ktor.test -- No ktor.deployment.watch patterns specified, automatic reload is not active.
+23:53:59.618 [DefaultDispatcher-worker-5 @call-context#15] INFO io.ktor.test -- Application started in 0.008 seconds.
+23:53:59.619 [DefaultDispatcher-worker-3 @coroutine#16] INFO io.ktor.test -- Responding at http://localhost:80
+23:53:59.619 [DefaultDispatcher-worker-3 @coroutine#16] INFO io.ktor.test -- Responding at https://localhost:443
+SERVER: Received profile for auto_tester (test_auto)
+23:53:59.672 [DefaultDispatcher-worker-4 @request#15] DEBUG Exposed -- INSERT INTO profiles (uid, username, display_name, color_hex, total_area_km2, run_count) VALUES ('test_auto', 'auto_tester', 'Auto Tester', '#00FF00', 50.0, 20) ON CONFLICT (uid) DO UPDATE SET username=EXCLUDED.username, display_name=EXCLUDED.display_name, color_hex=EXCLUDED.color_hex, total_area_km2=EXCLUDED.total_area_km2, run_count=EXCLUDED.run_count
+23:53:59.733 [DefaultDispatcher-worker-4 @call-context#27] INFO io.ktor.test -- No ktor.deployment.watch patterns specified, automatic reload is not active.
+23:53:59.737 [DefaultDispatcher-worker-4 @call-context#27] INFO io.ktor.test -- Application started in 0.004 seconds.
+23:53:59.738 [DefaultDispatcher-worker-7 @coroutine#28] INFO io.ktor.test -- Responding at http://localhost:80
+23:53:59.738 [DefaultDispatcher-worker-7 @coroutine#28] INFO io.ktor.test -- Responding at https://localhost:443
+23:53:59.747 [DefaultDispatcher-worker-4 @request#27] DEBUG Exposed -- SELECT profiles.uid, profiles.username, profiles.display_name, profiles.color_hex, profiles.total_area_km2, profiles.run_count FROM profiles
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

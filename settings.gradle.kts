@@ -29,3 +29,4 @@ dependencyResolutionManagement {
 rootProject.name = "RunTheWorld"
 include(":shared")
 include(":app")
+include(":server")

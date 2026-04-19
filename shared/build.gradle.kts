@@ -7,9 +7,10 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(17)
     androidTarget {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 
@@ -17,13 +18,19 @@ kotlin {
         commonMain.dependencies {
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
-            // Serialization (TypeConverters for Room)
+            // Serialization (TypeConverters for Room & Ktor JSON)
             implementation(libs.kotlinx.serialization.json)
             // Room KMP
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)
             // Koin
             implementation(libs.koin.core)
+            // Ktor Client
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.auth)
             // Multiplatform Settings (user profile storage)
             implementation(libs.multiplatform.settings)
             // Lifecycle ViewModel
@@ -35,6 +42,8 @@ kotlin {
             implementation(libs.koin.android)
             // GPS / Fused Location Provider
             implementation(libs.play.services.location)
+            // Ktor Android Engine
+            implementation(libs.ktor.client.okhttp)
         }
     }
 }
@@ -46,8 +55,8 @@ android {
         minSdk = 24
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
