@@ -34,7 +34,7 @@ val repositoryModule = module {
 val viewModelModule = module {
     viewModel { ProfileViewModel(get()) }
     viewModel { RunViewModel(get(), get(), get(), get()) }
-    viewModel { MapViewModel(get(), get()) }
+    viewModel { MapViewModel(get(), get(), get(), get()) }
     viewModel { HistoryViewModel(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { FriendsViewModel(get()) }

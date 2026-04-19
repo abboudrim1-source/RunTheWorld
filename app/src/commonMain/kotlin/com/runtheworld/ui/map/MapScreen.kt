@@ -53,7 +53,8 @@ fun MapScreen(
             territories = state.territories,
             currentUserUsername = state.currentUsername,
             currentPath = emptyList(),
-            userLocation = null
+            userLocation = state.userLocation,
+            pastPaths = state.runPaths
         )
 
         // Inbox bell — top left with badge

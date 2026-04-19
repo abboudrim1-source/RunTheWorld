@@ -12,17 +12,6 @@ kotlin {
         }
     }
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { target ->
-        target.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
-
     sourceSets {
         commonMain.dependencies {
             // Compose Multiplatform
@@ -47,7 +36,7 @@ kotlin {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
-            // Google Maps Compose (Android-only map renderer)
+            // Google Maps Compose
             implementation(libs.maps.compose)
             implementation(libs.play.services.maps)
             implementation(libs.kotlinx.coroutines.android)
@@ -57,8 +46,6 @@ kotlin {
             // SceneView — Filament-based 3D/AR renderer for Compose
             implementation(libs.sceneview)
         }
-
-        // iosMain uses MapKit via UIKitView — no extra Gradle deps needed
     }
 }
 
@@ -73,7 +60,6 @@ android {
     namespace = "com.runtheworld"
     compileSdk = 36
 
-    // Point Android plugin at the KMP-style source directories
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res", "src/main/res")
     sourceSets["main"].assets.srcDirs("src/androidMain/assets")

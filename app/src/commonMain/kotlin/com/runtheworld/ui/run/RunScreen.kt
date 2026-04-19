@@ -119,7 +119,8 @@ fun RunScreen(
             territories = emptyList(),
             currentUserUsername = null,
             currentPath = state.currentPath,
-            userLocation = state.currentPath.lastOrNull()
+            userLocation = state.userLocation,
+            showMyLocationButton = true
         )
 
         // Back button (only when not actively running)

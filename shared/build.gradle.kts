@@ -13,17 +13,6 @@ kotlin {
         }
     }
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { target ->
-        target.binaries.framework {
-            baseName = "shared"
-            isStatic = true
-        }
-    }
-
     sourceSets {
         commonMain.dependencies {
             // Coroutines
@@ -47,8 +36,6 @@ kotlin {
             // GPS / Fused Location Provider
             implementation(libs.play.services.location)
         }
-
-        // iosMain has no extra dependencies — uses platform.CoreLocation + platform.Foundation
     }
 }
 
@@ -69,10 +56,7 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-// KSP must be declared for every compilation target that uses Room annotations
+// KSP for Room annotation processing (Android only)
 dependencies {
     add("kspAndroid", libs.room.compiler)
-    add("kspIosX64", libs.room.compiler)
-    add("kspIosArm64", libs.room.compiler)
-    add("kspIosSimulatorArm64", libs.room.compiler)
 }

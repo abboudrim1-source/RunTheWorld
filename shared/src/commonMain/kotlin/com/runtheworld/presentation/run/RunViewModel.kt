@@ -30,7 +30,8 @@ data class RunState(
     val elapsedSeconds: Long = 0L,
     val startedAt: Long = 0L,
     val error: String? = null,
-    val lastSavedRunId: String? = null
+    val lastSavedRunId: String? = null,
+    val userLocation: GpsPoint? = null
 )
 
 @OptIn(ExperimentalUuidApi::class)
@@ -52,14 +53,19 @@ class RunViewModel(
         val now = currentTimeMillis()
         _state.update { RunState(status = RunStatus.RUNNING, startedAt = now) }
 
-        // GPS tracking
+        // GPS tracking — only append a point if the user moved at least 5 m
         trackingJob = viewModelScope.launch {
             locationService.locationUpdates().collect { point ->
                 _state.update { s ->
+                    val last = s.currentPath.lastOrNull()
+                    val moved = last == null ||
+                        DistanceCalculator.distanceBetween(last, point) >= 5.0
+                    if (!moved) return@update s.copy(userLocation = point)
                     val newPath = s.currentPath + point
                     s.copy(
                         currentPath = newPath,
-                        distanceMeters = DistanceCalculator.totalDistance(newPath)
+                        distanceMeters = DistanceCalculator.totalDistance(newPath),
+                        userLocation = point
                     )
                 }
             }

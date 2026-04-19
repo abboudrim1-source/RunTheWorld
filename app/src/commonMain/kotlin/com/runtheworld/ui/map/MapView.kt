@@ -17,5 +17,7 @@ expect fun RunTheWorldMap(
     territories: List<Territory>,
     currentUserUsername: String?,
     currentPath: List<GpsPoint>,
-    userLocation: GpsPoint?
+    userLocation: GpsPoint?,
+    pastPaths: List<List<GpsPoint>> = emptyList(),
+    showMyLocationButton: Boolean = false
 )

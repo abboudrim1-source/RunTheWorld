@@ -11,6 +11,8 @@ import com.runtheworld.domain.model.GpsPoint
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class AndroidLocationService(private val context: Context) : LocationService {
 
@@ -38,6 +40,18 @@ class AndroidLocationService(private val context: Context) : LocationService {
 
         fusedClient.requestLocationUpdates(request, callback, context.mainLooper)
         awaitClose { fusedClient.removeLocationUpdates(callback) }
+    }
+
+    @SuppressLint("MissingPermission")
+    override suspend fun getLastKnownLocation(): GpsPoint? = suspendCancellableCoroutine { cont ->
+        // Use lastLocation (real cached GPS fix). Returns null if no recent fix exists —
+        // that is intentional: network/IP-based location can be hundreds of miles off.
+        fusedClient.lastLocation
+            .addOnSuccessListener { loc ->
+                cont.resume(loc?.let { GpsPoint(it.latitude, it.longitude, it.time) })
+            }
+            .addOnFailureListener { cont.resume(null) }
+            .addOnCanceledListener { cont.resume(null) }
     }
 
     override suspend fun requestPermission(): Boolean {

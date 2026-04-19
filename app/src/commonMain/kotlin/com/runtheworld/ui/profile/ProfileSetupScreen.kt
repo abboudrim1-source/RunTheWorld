@@ -39,6 +39,7 @@ fun ProfileSetupScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    LaunchedEffect(Unit) { viewModel.loadExistingProfile() }
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onProfileSaved()
     }

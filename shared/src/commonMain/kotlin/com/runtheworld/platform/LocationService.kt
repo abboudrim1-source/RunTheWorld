@@ -14,6 +14,9 @@ interface LocationService {
      */
     fun locationUpdates(): Flow<GpsPoint>
 
+    /** Returns the last cached GPS fix immediately, or null if unavailable. */
+    suspend fun getLastKnownLocation(): GpsPoint?
+
     /** Request runtime permission. Returns true if permission was granted. */
     suspend fun requestPermission(): Boolean
 }

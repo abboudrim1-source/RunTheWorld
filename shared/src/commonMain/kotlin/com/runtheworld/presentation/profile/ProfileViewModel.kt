@@ -63,7 +63,6 @@ class ProfileViewModel(
     }
 
     fun logout() {
-        userProfileRepository.clearProfile()
         _state.update { ProfileState() }
     }
 

@@ -17,7 +17,9 @@ actual fun RunTheWorldMap(
     territories: List<Territory>,
     currentUserUsername: String?,
     currentPath: List<GpsPoint>,
-    userLocation: GpsPoint?
+    userLocation: GpsPoint?,
+    pastPaths: List<List<GpsPoint>>,
+    showMyLocationButton: Boolean
 ) {
     val defaultPosition = LatLng(48.8566, 2.3522)  // Paris fallback
     val cameraPositionState = rememberCameraPositionState {
@@ -39,8 +41,8 @@ actual fun RunTheWorldMap(
     GoogleMap(
         modifier = modifier,
         cameraPositionState = cameraPositionState,
-        properties = MapProperties(isMyLocationEnabled = false),
-        uiSettings = MapUiSettings(myLocationButtonEnabled = false)
+        properties = MapProperties(isMyLocationEnabled = true),
+        uiSettings = MapUiSettings(myLocationButtonEnabled = showMyLocationButton, zoomControlsEnabled = false)
     ) {
         // Draw all claimed territories
         territories.forEach { territory ->
@@ -57,25 +59,25 @@ actual fun RunTheWorldMap(
             )
         }
 
-        // Draw the active GPS trace as a polyline
+        // Draw saved run paths as faded white traces
+        pastPaths.forEach { path ->
+            if (path.size > 1) {
+                Polyline(
+                    points = path.map { LatLng(it.lat, it.lng) },
+                    color = androidx.compose.ui.graphics.Color(0x99FFFFFF),
+                    width = 6f,
+                    zIndex = 1f
+                )
+            }
+        }
+
+        // Draw the active GPS trace as a bright blue polyline
         if (currentPath.size > 1) {
             Polyline(
                 points = currentPath.map { LatLng(it.lat, it.lng) },
                 color = androidx.compose.ui.graphics.Color(0xFF33AFFF),
                 width = 10f,
                 zIndex = 2f
-            )
-        }
-
-        // Current location dot
-        userLocation?.let {
-            Circle(
-                center = LatLng(it.lat, it.lng),
-                radius = 8.0,
-                fillColor = androidx.compose.ui.graphics.Color(0xFF33AFFF),
-                strokeColor = androidx.compose.ui.graphics.Color.White,
-                strokeWidth = 2f,
-                zIndex = 3f
             )
         }
     }
