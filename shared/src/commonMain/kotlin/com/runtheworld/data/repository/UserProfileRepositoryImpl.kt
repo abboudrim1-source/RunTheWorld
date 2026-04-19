@@ -1,10 +1,15 @@
 package com.runtheworld.data.repository
 
+import com.runtheworld.data.local.db.UserProfileDao
+import com.runtheworld.data.local.db.UserProfileEntity
 import com.runtheworld.domain.model.UserProfile
 import com.runtheworld.domain.repository.UserProfileRepository
 import com.russhwolf.settings.Settings
 
-class UserProfileRepositoryImpl(private val settings: Settings) : UserProfileRepository {
+class UserProfileRepositoryImpl(
+    private val settings: Settings,
+    private val userProfileDao: UserProfileDao
+) : UserProfileRepository {
 
     // Prefix all profile keys with the signed-in UID so each account has its own data
     private fun prefix(): String {
@@ -27,13 +32,23 @@ class UserProfileRepositoryImpl(private val settings: Settings) : UserProfileRep
         )
     }
 
-    override fun saveProfile(profile: UserProfile) {
+    override suspend fun saveProfile(profile: UserProfile) {
         val p = prefix()
         settings.putString(p + KEY_USERNAME, profile.username)
         settings.putString(p + KEY_DISPLAY_NAME, profile.displayName)
         settings.putString(p + KEY_COLOR, profile.colorHex)
         settings.putDouble(p + KEY_TOTAL_AREA, profile.totalAreaKm2)
         settings.putInt(p + KEY_RUN_COUNT, profile.runCount)
+        // Also persist to Room so other users can search by username
+        val uid = settings.getStringOrNull("auth_uid") ?: return
+        userProfileDao.upsert(
+            UserProfileEntity(
+                uid = uid,
+                username = profile.username,
+                displayName = profile.displayName,
+                colorHex = profile.colorHex
+            )
+        )
     }
 
     override fun clearProfile() {
@@ -47,12 +62,9 @@ class UserProfileRepositoryImpl(private val settings: Settings) : UserProfileRep
 
     override fun updateStats(additionalAreaKm2: Double) {
         val current = getProfile() ?: return
-        saveProfile(
-            current.copy(
-                totalAreaKm2 = current.totalAreaKm2 + additionalAreaKm2,
-                runCount = current.runCount + 1
-            )
-        )
+        val p = prefix()
+        settings.putDouble(p + KEY_TOTAL_AREA, current.totalAreaKm2 + additionalAreaKm2)
+        settings.putInt(p + KEY_RUN_COUNT, current.runCount + 1)
     }
 
     companion object {

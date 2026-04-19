@@ -5,8 +5,14 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [RunEntity::class, TerritoryEntity::class, UserAccountEntity::class],
-    version = 2,
+    entities = [
+        RunEntity::class,
+        TerritoryEntity::class,
+        UserAccountEntity::class,
+        UserProfileEntity::class,
+        FriendRequestEntity::class
+    ],
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -14,6 +20,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun runDao(): RunDao
     abstract fun territoryDao(): TerritoryDao
     abstract fun userAccountDao(): UserAccountDao
+    abstract fun userProfileDao(): UserProfileDao
+    abstract fun friendRequestDao(): FriendRequestDao
 
     companion object {
         const val DATABASE_NAME = "runtheworld.db"

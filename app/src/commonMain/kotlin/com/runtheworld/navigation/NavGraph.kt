@@ -10,6 +10,8 @@ import androidx.navigation.navArgument
 import com.runtheworld.presentation.auth.AuthViewModel
 import com.runtheworld.presentation.profile.ProfileViewModel
 import com.runtheworld.ui.auth.AuthScreen
+import com.runtheworld.ui.friends.AddFriendsScreen
+import com.runtheworld.ui.friends.InboxScreen
 import com.runtheworld.ui.history.HistoryScreen
 import com.runtheworld.ui.map.MapScreen
 import com.runtheworld.ui.profile.ProfileScreen
@@ -26,6 +28,8 @@ object Routes {
     const val RUN           = "run"
     const val HISTORY       = "history"
     const val PROFILE       = "profile"
+    const val ADD_FRIENDS   = "add_friends"
+    const val INBOX         = "inbox"
 
     fun auth(signUp: Boolean) = "auth?signup=$signUp"
 }
@@ -83,7 +87,8 @@ fun RunTheWorldNavHost(
             MapScreen(
                 onStartRun = { navController.navigate(Routes.RUN) },
                 onHistory  = { navController.navigate(Routes.HISTORY) },
-                onProfile  = { navController.navigate(Routes.PROFILE) }
+                onProfile  = { navController.navigate(Routes.PROFILE) },
+                onInbox    = { navController.navigate(Routes.INBOX) }
             )
         }
 
@@ -105,6 +110,7 @@ fun RunTheWorldNavHost(
         composable(Routes.PROFILE) {
             ProfileScreen(
                 onBack = { navController.popBackStack() },
+                onAddFriends = { navController.navigate(Routes.ADD_FRIENDS) },
                 onSignOut = {
                     profileViewModel.logout()
                     authViewModel.signOut {
@@ -112,6 +118,14 @@ fun RunTheWorldNavHost(
                     }
                 }
             )
+        }
+
+        composable(Routes.ADD_FRIENDS) {
+            AddFriendsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.INBOX) {
+            InboxScreen(onBack = { navController.popBackStack() })
         }
     }
 }

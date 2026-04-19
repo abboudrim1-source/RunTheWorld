@@ -57,6 +57,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     fun signOut(onDone: () -> Unit) {
         viewModelScope.launch {
             authRepository.signOut()
+            _state.update { AuthState() }
             onDone()
         }
     }

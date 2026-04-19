@@ -1,6 +1,9 @@
 package com.runtheworld.ui.profile
 
 import androidx.compose.foundation.BorderStroke
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.runtheworld.presentation.friends.FriendsViewModel
 import com.runtheworld.presentation.profile.AVATAR_COLORS
 import com.runtheworld.presentation.profile.ProfileViewModel
 import com.runtheworld.ui.theme.*
@@ -36,12 +41,21 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ProfileScreen(
     onBack: () -> Unit,
     onSignOut: () -> Unit,
-    viewModel: ProfileViewModel = koinViewModel()
+    onAddFriends: () -> Unit,
+    viewModel: ProfileViewModel = koinViewModel(),
+    friendsViewModel: FriendsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val friendsState by friendsViewModel.state.collectAsState()
     var showSignOutDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) { viewModel.loadExistingProfile() }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.loadExistingProfile()
+            friendsViewModel.loadAll()
+        }
+    }
 
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
@@ -239,6 +253,74 @@ fun ProfileScreen(
                     onClick = viewModel::saveProfile,
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Friends section
+            GlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    SectionLabel("FRIENDS (${friendsState.friends.size})")
+                    IconButton(onClick = onAddFriends) {
+                        Icon(
+                            Icons.Default.PersonAdd,
+                            contentDescription = "Add friends",
+                            tint = NeonOrange,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                if (friendsState.friends.isEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "No friends yet — search by username to add some!",
+                        color = Color.White.copy(alpha = 0.4f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(Modifier.height(4.dp))
+                } else {
+                    Spacer(Modifier.height(12.dp))
+                    friendsState.friends.forEach { friend ->
+                        val friendColor = parseHexColor(friend.colorHex)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        androidx.compose.ui.graphics.Brush.radialGradient(
+                                            colors = listOf(friendColor, friendColor.copy(alpha = 0.6f))
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = friend.username.first().uppercaseChar().toString(),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
+                                )
+                            }
+                            Column {
+                                if (friend.displayName.isNotBlank()) {
+                                    Text(friend.displayName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                }
+                                Text("@${friend.username}", color = NeonOrange.copy(alpha = 0.8f), fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(Modifier.height(16.dp))

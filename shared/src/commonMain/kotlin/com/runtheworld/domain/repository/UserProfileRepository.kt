@@ -4,7 +4,7 @@ import com.runtheworld.domain.model.UserProfile
 
 interface UserProfileRepository {
     fun getProfile(): UserProfile?
-    fun saveProfile(profile: UserProfile)
+    suspend fun saveProfile(profile: UserProfile)
     fun isProfileSetUp(): Boolean
     fun updateStats(additionalAreaKm2: Double)
     fun clearProfile()

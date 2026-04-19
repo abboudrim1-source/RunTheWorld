@@ -1,7 +1,6 @@
 package com.runtheworld.ui.map
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -11,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import com.runtheworld.presentation.friends.FriendsViewModel
 import com.runtheworld.presentation.map.MapViewModel
 import com.runtheworld.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
@@ -29,9 +33,19 @@ fun MapScreen(
     onStartRun: () -> Unit,
     onHistory: () -> Unit,
     onProfile: () -> Unit,
-    viewModel: MapViewModel = koinViewModel()
+    onInbox: () -> Unit,
+    viewModel: MapViewModel = koinViewModel(),
+    friendsViewModel: FriendsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val friendsState by friendsViewModel.state.collectAsState()
+
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            friendsViewModel.loadInboxCount()
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         RunTheWorldMap(
@@ -42,7 +56,51 @@ fun MapScreen(
             userLocation = null
         )
 
-        // Profile button — top right (glass)
+        // Inbox bell — top left with badge
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .statusBarsPadding()
+                .padding(12.dp)
+        ) {
+            BadgedBox(
+                badge = {
+                    if (friendsState.inboxCount > 0) {
+                        Badge(
+                            containerColor = NeonOrange,
+                            contentColor = Color.White
+                        ) {
+                            Text(
+                                text = friendsState.inboxCount.toString(),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .mapGlassSurface(CircleShape)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = onInbox
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = "Inbox",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+
+        // Profile button — top right
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -57,15 +115,10 @@ fun MapScreen(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                Icons.Default.AccountCircle,
-                contentDescription = "Profile",
-                tint = Color.White,
-                modifier = Modifier.size(26.dp)
-            )
+            Icon(Icons.Default.AccountCircle, contentDescription = "Profile", tint = Color.White, modifier = Modifier.size(26.dp))
         }
 
-        // Territory count pill — top center (glass)
+        // Territory count pill — top center
         if (!state.isLoading) {
             Box(
                 modifier = Modifier
@@ -94,7 +147,6 @@ fun MapScreen(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // History button — glass circle
             Box(
                 modifier = Modifier
                     .size(52.dp)
@@ -106,15 +158,9 @@ fun MapScreen(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.History,
-                    contentDescription = "History",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
+                Icon(Icons.Default.History, contentDescription = "History", tint = Color.White, modifier = Modifier.size(24.dp))
             }
 
-            // Start run FAB — gradient with glow
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -128,15 +174,9 @@ fun MapScreen(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.DirectionsRun,
-                    contentDescription = "Start run",
-                    tint = Color.White,
-                    modifier = Modifier.size(36.dp)
-                )
+                Icon(Icons.Default.DirectionsRun, contentDescription = "Start run", tint = Color.White, modifier = Modifier.size(36.dp))
             }
 
-            // Placeholder spacer (mirror of history button for centering)
             Spacer(Modifier.size(52.dp))
         }
     }

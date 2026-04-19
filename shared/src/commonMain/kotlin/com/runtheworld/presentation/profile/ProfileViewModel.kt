@@ -1,12 +1,14 @@
 package com.runtheworld.presentation.profile
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.runtheworld.domain.model.UserProfile
 import com.runtheworld.domain.repository.UserProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class ProfileState(
     val username: String = "",
@@ -48,14 +50,16 @@ class ProfileViewModel(
             _state.update { it.copy(error = "Runner name cannot be empty") }
             return
         }
-        userProfileRepository.saveProfile(
-            UserProfile(
-                username = username,
-                displayName = _state.value.displayName.trim(),
-                colorHex = _state.value.selectedColorHex
+        viewModelScope.launch {
+            userProfileRepository.saveProfile(
+                UserProfile(
+                    username = username,
+                    displayName = _state.value.displayName.trim(),
+                    colorHex = _state.value.selectedColorHex
+                )
             )
-        )
-        _state.update { it.copy(isSaved = true) }
+            _state.update { it.copy(isSaved = true) }
+        }
     }
 
     fun logout() {
