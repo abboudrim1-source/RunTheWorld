@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,17 +32,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.runtheworld.data.network.LebanonGovernorates
 import com.runtheworld.presentation.profile.AVATAR_COLORS
 import com.runtheworld.presentation.profile.ProfileViewModel
 import com.runtheworld.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileSetupScreen(
     onProfileSaved: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var cityExpanded by remember { mutableStateOf(false) }
 
     val pickImage = rememberImagePickerLauncher { base64 -> base64?.let { viewModel.onAvatarSelected(it) } }
 
@@ -58,7 +63,6 @@ fun ProfileSetupScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // Branding
             GradientText(
                 text = "RUN THE WORLD",
                 style = MaterialTheme.typography.headlineLarge,
@@ -76,7 +80,6 @@ fun ProfileSetupScreen(
 
             Spacer(Modifier.height(40.dp))
 
-            // Avatar preview — tap to pick photo
             val selectedColor = parseHexColor(state.selectedColorHex)
             val avatarBitmap = rememberBase64Bitmap(state.avatarBase64)
             Box(
@@ -126,7 +129,6 @@ fun ProfileSetupScreen(
                 SectionLabel("YOUR INFO")
                 Spacer(Modifier.height(12.dp))
 
-                // Full name
                 OutlinedTextField(
                     value = state.displayName,
                     onValueChange = viewModel::onDisplayNameChange,
@@ -142,7 +144,6 @@ fun ProfileSetupScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // Runner name
                 OutlinedTextField(
                     value = state.username,
                     onValueChange = viewModel::onUsernameChange,
@@ -160,19 +161,44 @@ fun ProfileSetupScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // City
-                OutlinedTextField(
-                    value = state.city,
-                    onValueChange = viewModel::onCityChange,
-                    label = { Text("City") },
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(Icons.Default.LocationCity, null, tint = NeonOrange.copy(alpha = 0.8f))
-                    },
-                    colors = profileFieldColors(),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ExposedDropdownMenuBox(
+                    expanded = cityExpanded,
+                    onExpandedChange = { cityExpanded = !cityExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = state.city,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Governorate") },
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(Icons.Default.LocationCity, null, tint = NeonOrange.copy(alpha = 0.8f))
+                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
+                        isError = state.error?.contains("governorate", ignoreCase = true) == true,
+                        supportingText = if (state.error?.contains("governorate", ignoreCase = true) == true) {
+                            { Text(state.error ?: "", color = MaterialTheme.colorScheme.error) }
+                        } else null,
+                        colors = profileFieldColors(),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true).fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = cityExpanded,
+                        onDismissRequest = { cityExpanded = false }
+                    ) {
+                        LebanonGovernorates.forEach { governorate ->
+                            DropdownMenuItem(
+                                text = { Text(governorate) },
+                                onClick = {
+                                    viewModel.onCityChange(governorate)
+                                    cityExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(Modifier.height(24.dp))
 
