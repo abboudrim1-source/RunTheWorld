@@ -1,18 +1,25 @@
 package com.runtheworld.di
 
-import com.runtheworld.data.repository.FriendRepositoryImpl
+import com.runtheworld.data.repository.KtorAuthRepositoryImpl
+import com.runtheworld.data.repository.KtorFriendRepositoryImpl
+import com.runtheworld.data.repository.KtorLeaderboardRepositoryImpl
+import com.runtheworld.data.repository.KtorRemoteTerritoryRepositoryImpl
+import com.runtheworld.data.repository.KtorRunSyncRepositoryImpl
 import com.runtheworld.data.repository.KtorUserProfileRepositoryImpl
-import com.runtheworld.data.repository.RoomAuthRepositoryImpl
 import com.runtheworld.data.repository.RunRepositoryImpl
 import com.runtheworld.data.repository.TerritoryRepositoryImpl
 import com.runtheworld.domain.repository.AuthRepository
 import com.runtheworld.domain.repository.FriendRepository
+import com.runtheworld.domain.repository.LeaderboardRepository
+import com.runtheworld.domain.repository.RemoteTerritoryRepository
 import com.runtheworld.domain.repository.RunRepository
+import com.runtheworld.domain.repository.RunSyncRepository
 import com.runtheworld.domain.repository.TerritoryRepository
 import com.runtheworld.domain.repository.UserProfileRepository
 import com.runtheworld.presentation.auth.AuthViewModel
 import com.runtheworld.presentation.friends.FriendsViewModel
 import com.runtheworld.presentation.history.HistoryViewModel
+import com.runtheworld.presentation.leaderboard.LeaderboardViewModel
 import com.runtheworld.presentation.map.MapViewModel
 import com.runtheworld.presentation.profile.ProfileViewModel
 import com.runtheworld.presentation.run.RunViewModel
@@ -25,7 +32,6 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-/** Declared as expect so each platform can supply its own module (DB driver, LocationService, Settings). */
 expect val platformModule: Module
 
 val networkModule = module {
@@ -48,19 +54,22 @@ val networkModule = module {
 val repositoryModule = module {
     single<RunRepository> { RunRepositoryImpl(get()) }
     single<TerritoryRepository> { TerritoryRepositoryImpl(get()) }
+    single<RemoteTerritoryRepository> { KtorRemoteTerritoryRepositoryImpl(get(), get()) }
     single<UserProfileRepository> { KtorUserProfileRepositoryImpl(get(), get(), get()) }
-    single<AuthRepository> { RoomAuthRepositoryImpl(get(), get()) }
-    single<FriendRepository> { FriendRepositoryImpl(get(), get(), get()) }  // FriendRequestDao, UserProfileDao, Settings
+    single<AuthRepository> { KtorAuthRepositoryImpl(get(), get()) }
+    single<FriendRepository> { KtorFriendRepositoryImpl(get(), get()) }
+    single<RunSyncRepository> { KtorRunSyncRepositoryImpl(get(), get()) }
+    single<LeaderboardRepository> { KtorLeaderboardRepositoryImpl(get()) }
 }
 
 val viewModelModule = module {
-    viewModel { ProfileViewModel(get()) }
-    viewModel { RunViewModel(get(), get(), get(), get()) }
-    viewModel { MapViewModel(get(), get(), get(), get()) }
+    viewModel { ProfileViewModel(get(), get()) }
+    viewModel { RunViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { MapViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { HistoryViewModel(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { FriendsViewModel(get()) }
+    viewModel { LeaderboardViewModel(get()) }
 }
 
-/** Call from platform entry point (Application.onCreate on Android, init() in Swift on iOS). */
 fun appModules(): List<Module> = listOf(platformModule, networkModule, repositoryModule, viewModelModule)

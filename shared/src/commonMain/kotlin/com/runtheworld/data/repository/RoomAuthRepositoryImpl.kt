@@ -85,6 +85,13 @@ class RoomAuthRepositoryImpl(
         settings.remove(KEY_NAME)
     }
 
+    override suspend fun validateSession(): Boolean {
+        val uid = settings.getStringOrNull(KEY_UID) ?: return false
+        return dao.findByGoogleId(uid) != null || dao.findByEmail(
+            settings.getStringOrNull(KEY_EMAIL) ?: return false
+        ) != null
+    }
+
     private fun saveSession(account: UserAccountEntity): AuthUser {
         settings.putString(KEY_UID, account.uid)
         settings.putString(KEY_EMAIL, account.email)

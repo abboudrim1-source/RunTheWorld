@@ -1,6 +1,7 @@
 package com.runtheworld.ui.profile
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +49,7 @@ fun ProfileScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val friendsState by friendsViewModel.state.collectAsState()
+    val pickImage = rememberImagePickerLauncher { base64 -> base64?.let { viewModel.onAvatarSelected(it) } }
     var showSignOutDialog by remember { mutableStateOf(false) }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -123,6 +126,7 @@ fun ProfileScreen(
 
             // Avatar section
             val avatarColor = parseHexColor(state.selectedColorHex)
+            val avatarBitmap = rememberBase64Bitmap(state.avatarBase64)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -136,25 +140,28 @@ fun ProfileScreen(
                             androidx.compose.ui.graphics.Brush.radialGradient(
                                 colors = listOf(avatarColor, avatarColor.copy(alpha = 0.6f))
                             )
-                        ),
+                        )
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { pickImage() },
                     contentAlignment = Alignment.Center
                 ) {
-                    val initial = state.displayName.firstOrNull()?.uppercaseChar()
-                        ?: state.username.firstOrNull()?.uppercaseChar()
-                    if (initial != null) {
-                        Text(
-                            text = initial.toString(),
-                            fontSize = 40.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
+                    if (avatarBitmap != null) {
+                        Image(
+                            bitmap = avatarBitmap,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
                     } else {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(48.dp)
-                        )
+                        val initial = state.displayName.firstOrNull()?.uppercaseChar()
+                            ?: state.username.firstOrNull()?.uppercaseChar()
+                        if (initial != null) {
+                            Text(initial.toString(), fontSize = 40.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        } else {
+                            Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(48.dp))
+                        }
                     }
                 }
 
@@ -175,9 +182,33 @@ fun ProfileScreen(
                         color = NeonOrange.copy(alpha = 0.8f)
                     )
                 }
+
+                Spacer(Modifier.height(20.dp))
+
+                // Stats row
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    StatChip(
+                        label = "TERRITORY",
+                        value = run {
+                            val v = (state.totalAreaKm2 * 100).toLong()
+                            "${v / 100}.${(v % 100).toString().padStart(2, '0')} km²"
+                        }
+                    )
+                    StatChip(
+                        label = "RUNS",
+                        value = state.runCount.toString()
+                    )
+                    StatChip(
+                        label = "FRIENDS",
+                        value = friendsState.friends.size.toString()
+                    )
+                }
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
 
             // Edit form card
             GlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
@@ -364,5 +395,13 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(40.dp))
         }
+    }
+}
+
+@Composable
+private fun StatChip(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text(label, color = NeonOrange.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
     }
 }

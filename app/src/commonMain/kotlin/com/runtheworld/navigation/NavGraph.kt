@@ -1,18 +1,21 @@
 package com.runtheworld.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import kotlinx.coroutines.launch
 import com.runtheworld.presentation.auth.AuthViewModel
 import com.runtheworld.presentation.profile.ProfileViewModel
 import com.runtheworld.ui.auth.AuthScreen
 import com.runtheworld.ui.friends.AddFriendsScreen
 import com.runtheworld.ui.friends.InboxScreen
 import com.runtheworld.ui.history.HistoryScreen
+import com.runtheworld.ui.leaderboard.LeaderboardScreen
 import com.runtheworld.ui.map.MapScreen
 import com.runtheworld.ui.profile.ProfileScreen
 import com.runtheworld.ui.profile.ProfileSetupScreen
@@ -30,6 +33,7 @@ object Routes {
     const val PROFILE       = "profile"
     const val ADD_FRIENDS   = "add_friends"
     const val INBOX         = "inbox"
+    const val LEADERBOARD   = "leaderboard"
 
     fun auth(signUp: Boolean) = "auth?signup=$signUp"
 }
@@ -41,6 +45,7 @@ fun RunTheWorldNavHost(
 ) {
     val profileViewModel: ProfileViewModel = koinViewModel()
     val authViewModel: AuthViewModel       = koinViewModel()
+    val scope = rememberCoroutineScope()
 
     NavHost(navController = navController, startDestination = startDestination) {
 
@@ -62,11 +67,17 @@ fun RunTheWorldNavHost(
             AuthScreen(
                 initialSignUpMode = isSignUp,
                 onAuthSuccess = {
-                    if (profileViewModel.isProfileSetUp) {
-                        navController.navigate(Routes.MAP) { popUpTo(0) { inclusive = true } }
-                    } else {
-                        navController.navigate(Routes.PROFILE_SETUP) {
-                            popUpTo(Routes.WELCOME) { inclusive = true }
+                    scope.launch {
+                        val uid = authViewModel.currentUid
+                        if (!profileViewModel.isProfileSetUp && uid != null) {
+                            profileViewModel.tryRestoreFromServer(uid)
+                        }
+                        if (profileViewModel.isProfileSetUp) {
+                            navController.navigate(Routes.MAP) { popUpTo(0) { inclusive = true } }
+                        } else {
+                            navController.navigate(Routes.PROFILE_SETUP) {
+                                popUpTo(Routes.WELCOME) { inclusive = true }
+                            }
                         }
                     }
                 }
@@ -85,10 +96,11 @@ fun RunTheWorldNavHost(
 
         composable(Routes.MAP) {
             MapScreen(
-                onStartRun = { navController.navigate(Routes.RUN) },
-                onHistory  = { navController.navigate(Routes.HISTORY) },
-                onProfile  = { navController.navigate(Routes.PROFILE) },
-                onInbox    = { navController.navigate(Routes.INBOX) }
+                onStartRun    = { navController.navigate(Routes.RUN) },
+                onHistory     = { navController.navigate(Routes.HISTORY) },
+                onProfile     = { navController.navigate(Routes.PROFILE) },
+                onInbox       = { navController.navigate(Routes.INBOX) },
+                onLeaderboard = { navController.navigate(Routes.LEADERBOARD) }
             )
         }
 
@@ -126,6 +138,10 @@ fun RunTheWorldNavHost(
 
         composable(Routes.INBOX) {
             InboxScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.LEADERBOARD) {
+            LeaderboardScreen(onBack = { navController.popBackStack() })
         }
     }
 }

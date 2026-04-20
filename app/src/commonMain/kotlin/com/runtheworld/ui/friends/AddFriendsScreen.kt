@@ -66,7 +66,7 @@ fun AddFriendsScreen(
             OutlinedTextField(
                 value = state.query,
                 onValueChange = viewModel::onQueryChange,
-                placeholder = { Text("Search by username…", color = Color.White.copy(alpha = 0.4f)) },
+                placeholder = { Text("Search by runner tag…", color = Color.White.copy(alpha = 0.4f)) },
                 singleLine = true,
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = NeonOrange.copy(alpha = 0.8f))
@@ -90,7 +90,7 @@ fun AddFriendsScreen(
             Spacer(Modifier.height(8.dp))
 
             when {
-                state.query.isBlank() -> EmptyHint("Search for a runner by username")
+                state.query.isBlank() -> EmptyHint("Search for a runner by their tag")
                 state.isSearching -> { /* spinner already in text field trailing icon */ }
                 state.searchResults.isEmpty() -> EmptyHint("No runners found for \"${state.query}\"")
                 else -> {

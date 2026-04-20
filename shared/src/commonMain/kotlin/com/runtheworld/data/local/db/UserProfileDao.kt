@@ -15,4 +15,7 @@ interface UserProfileDao {
 
     @Query("SELECT * FROM user_profiles WHERE username LIKE '%' || :query || '%' AND uid != :excludeUid ORDER BY username ASC")
     suspend fun searchByUsername(query: String, excludeUid: String): List<UserProfileEntity>
+
+    @Query("DELETE FROM user_profiles")
+    suspend fun deleteAll()
 }

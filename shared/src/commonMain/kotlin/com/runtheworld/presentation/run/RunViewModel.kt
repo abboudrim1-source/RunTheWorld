@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.runtheworld.domain.model.GpsPoint
 import com.runtheworld.domain.model.Run
+import com.runtheworld.domain.model.Territory
+import com.runtheworld.domain.repository.RemoteTerritoryRepository
 import com.runtheworld.domain.repository.RunRepository
+import com.runtheworld.domain.repository.RunSyncRepository
 import com.runtheworld.domain.repository.TerritoryRepository
 import com.runtheworld.domain.repository.UserProfileRepository
-import com.runtheworld.domain.model.Territory
 import com.runtheworld.platform.LocationService
 import com.runtheworld.util.ConvexHull
 import com.runtheworld.util.DistanceCalculator
@@ -22,6 +24,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 enum class RunStatus { IDLE, RUNNING, SAVING, DONE, ERROR }
+enum class SyncStatus { IDLE, SYNCING, SYNCED, FAILED }
 
 data class RunState(
     val status: RunStatus = RunStatus.IDLE,
@@ -31,7 +34,9 @@ data class RunState(
     val startedAt: Long = 0L,
     val error: String? = null,
     val lastSavedRunId: String? = null,
-    val userLocation: GpsPoint? = null
+    val userLocation: GpsPoint? = null,
+    val syncStatus: SyncStatus = SyncStatus.IDLE,
+    val syncMessage: String? = null
 )
 
 @OptIn(ExperimentalUuidApi::class)
@@ -39,7 +44,9 @@ class RunViewModel(
     private val locationService: LocationService,
     private val runRepository: RunRepository,
     private val territoryRepository: TerritoryRepository,
-    private val userProfileRepository: UserProfileRepository
+    private val userProfileRepository: UserProfileRepository,
+    private val runSyncRepository: RunSyncRepository,
+    private val remoteTerritoryRepository: RemoteTerritoryRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RunState())
@@ -53,7 +60,6 @@ class RunViewModel(
         val now = currentTimeMillis()
         _state.update { RunState(status = RunStatus.RUNNING, startedAt = now) }
 
-        // GPS tracking — only append a point if the user moved at least 5 m
         trackingJob = viewModelScope.launch {
             locationService.locationUpdates().collect { point ->
                 _state.update { s ->
@@ -71,7 +77,6 @@ class RunViewModel(
             }
         }
 
-        // Elapsed timer — updates every second
         timerJob = viewModelScope.launch {
             while (true) {
                 kotlinx.coroutines.delay(1_000)
@@ -110,11 +115,14 @@ class RunViewModel(
             claimedPolygon = polygon
         )
 
+        // 1. Save run to Room — must succeed before anything else
         runRepository.saveRun(run).onError { err ->
             _state.update { it.copy(status = RunStatus.ERROR, error = err) }
             return
         }
 
+        // 2. Save territory polygon and update local stats
+        var claimedTerritory: Territory? = null
         if (profile != null) {
             val territory = Territory(
                 id = runId,
@@ -126,9 +134,23 @@ class RunViewModel(
             )
             territoryRepository.claimTerritory(territory)
             userProfileRepository.updateStats(areaKm2)
+            claimedTerritory = territory
         }
 
-        _state.update { it.copy(status = RunStatus.DONE, lastSavedRunId = runId) }
+        // 3. Local save complete — mark DONE and begin backend sync
+        _state.update {
+            it.copy(status = RunStatus.DONE, lastSavedRunId = runId, syncStatus = SyncStatus.SYNCING)
+        }
+
+        // 4. Upload run + updated profile stats to backend
+        val syncResult = runSyncRepository.syncRun(run)
+        if (syncResult.isSuccess) {
+            claimedTerritory?.let { try { remoteTerritoryRepository.syncTerritory(it) } catch (_: Exception) {} }
+            try { userProfileRepository.syncToServer() } catch (_: Exception) {}
+            _state.update { it.copy(syncStatus = SyncStatus.SYNCED) }
+        } else {
+            _state.update { it.copy(syncStatus = SyncStatus.FAILED, syncMessage = "Run saved locally, but server sync failed") }
+        }
     }
 
     fun resetToIdle() {

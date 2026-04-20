@@ -51,6 +51,8 @@ class UserProfileRepositoryImpl(
         )
     }
 
+    override suspend fun syncToServer() { /* no-op: Ktor impl handles server sync */ }
+
     override fun clearProfile() {
         val p = prefix()
         settings.remove(p + KEY_USERNAME)
@@ -59,6 +61,8 @@ class UserProfileRepositoryImpl(
         settings.remove(p + KEY_TOTAL_AREA)
         settings.remove(p + KEY_RUN_COUNT)
     }
+
+    override suspend fun fetchFromServer(uid: String): UserProfile? = null
 
     override fun updateStats(additionalAreaKm2: Double) {
         val current = getProfile() ?: return

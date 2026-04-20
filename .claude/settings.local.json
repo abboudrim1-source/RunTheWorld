@@ -9,7 +9,21 @@
       "Bash(git fetch:*)",
       "Bash(./gradlew :app:compileDebugKotlinAndroid)",
       "Bash(xargs grep:*)",
-      "Bash(grep -iE \"iosMain|iosApp|\\\\.swift$|\\\\.plist$\")"
+      "Bash(grep -iE \"iosMain|iosApp|\\\\.swift$|\\\\.plist$\")",
+      "Bash(sqlite3 runtheworld_server.db \"DELETE FROM profiles; DELETE FROM friend_requests; DELETE FROM runs; SELECT 'profiles: ' || COUNT\\(*\\) FROM profiles; SELECT 'runs: ' || COUNT\\(*\\) FROM runs; SELECT 'friend_requests: ' || COUNT\\(*\\) FROM friend_requests;\")",
+      "Bash(./gradlew :server:tasks)",
+      "Bash(./gradlew :server:tasks --all)",
+      "Bash(./gradlew :server:run)",
+      "Bash(curl *)",
+      "Bash(python -m json.tool)",
+      "Bash(powershell *)",
+      "Bash(ipconfig)",
+      "Bash(pkill -f \"runtheworld\")",
+      "Bash(sqlite3 /c/Users/abbou/AndroidStudioProjects/RunTheWorld/server/runtheworld_server.db \".schema accounts\")",
+      "Bash(sqlite3 /c/Users/abbou/AndroidStudioProjects/RunTheWorld/server/runtheworld_server.db \"SELECT uid, email, login_type FROM accounts;\")",
+      "Bash(where sqlite3 *)",
+      "Bash(git rm *)",
+      "Bash(git add *)"
     ]
   }
 }

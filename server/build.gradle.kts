@@ -1,10 +1,15 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    application
 }
 
 group = "com.runtheworld"
 version = "1.0.0"
+
+application {
+    mainClass.set("com.runtheworld.server.ApplicationKt")
+}
 
 dependencies {
     implementation(libs.ktor.server.core)

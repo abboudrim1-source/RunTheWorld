@@ -14,6 +14,12 @@ interface TerritoryDao {
     @Query("DELETE FROM territories WHERE ownerUsername = :username")
     suspend fun deleteByOwner(username: String)
 
+    @Query("UPDATE territories SET ownerColorHex = :colorHex WHERE ownerUsername = :username")
+    suspend fun updateColorForOwner(username: String, colorHex: String)
+
     @Query("DELETE FROM territories WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM territories")
+    suspend fun deleteAll()
 }

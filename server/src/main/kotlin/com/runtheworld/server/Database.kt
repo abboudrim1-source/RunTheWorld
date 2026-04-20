@@ -3,16 +3,26 @@ package com.runtheworld.server
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
-// ── Tables ────────────────────────────────────────────────────────────────────
-
 object Profiles : Table("profiles") {
-    val uid         = varchar("uid", 64)
-    val username    = varchar("username", 64)
-    val displayName = varchar("display_name", 255)
-    val colorHex    = varchar("color_hex", 16)
+    val uid          = varchar("uid", 64)
+    val username     = varchar("username", 64)
+    val displayName  = varchar("display_name", 255)
+    val colorHex     = varchar("color_hex", 16)
     val totalAreaKm2 = double("total_area_km2").default(0.0)
-    val runCount    = integer("run_count").default(0)
+    val runCount     = integer("run_count").default(0)
+    val avatarBase64 = text("avatar_base64").nullable()
     override val primaryKey = PrimaryKey(uid)
+}
+
+object Territories : Table("territories") {
+    val id            = varchar("id", 64)
+    val userId        = varchar("user_id", 64)
+    val ownerUsername = varchar("owner_username", 64)
+    val ownerColorHex = varchar("owner_color_hex", 16)
+    val polygonJson   = text("polygon_json")
+    val claimedAt     = long("claimed_at")
+    val areaKm2       = double("area_km2")
+    override val primaryKey = PrimaryKey(id)
 }
 
 object Runs : Table("runs") {
@@ -25,14 +35,31 @@ object Runs : Table("runs") {
     override val primaryKey = PrimaryKey(id)
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+object FriendRequests : Table("friend_requests") {
+    val id          = varchar("id", 64)
+    val senderUid   = varchar("sender_uid", 64)
+    val receiverUid = varchar("receiver_uid", 64)
+    val status      = varchar("status", 16).default("PENDING") // PENDING | ACCEPTED | DECLINED
+    val createdAt   = long("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object Accounts : Table("accounts") {
+    val uid          = varchar("uid", 64)
+    val email        = varchar("email", 255).uniqueIndex()
+    val displayName  = varchar("display_name", 255).nullable()
+    val passwordHash = varchar("password_hash", 128).nullable()
+    val salt         = varchar("salt", 64).nullable()
+    val loginType    = varchar("login_type", 16).default("email")
+    override val primaryKey = PrimaryKey(uid)
+}
 
 object DatabaseFactory {
     fun init() {
-        val dbPath = "runtheworld_server.db"
+        val dbPath = System.getenv("DB_PATH") ?: "runtheworld_server.db"
         Database.connect("jdbc:sqlite:$dbPath", "org.sqlite.JDBC")
         transaction {
-            SchemaUtils.create(Profiles, Runs)
+            SchemaUtils.create(Profiles, Runs, FriendRequests, Accounts, Territories)
         }
     }
 }

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.runtheworld.domain.model.GpsPoint
 import com.runtheworld.domain.model.Territory
+import com.runtheworld.domain.repository.FriendRepository
+import com.runtheworld.domain.repository.RemoteTerritoryRepository
 import com.runtheworld.domain.repository.RunRepository
 import com.runtheworld.domain.repository.TerritoryRepository
 import com.runtheworld.domain.repository.UserProfileRepository
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
 
 data class MapState(
     val territories: List<Territory> = emptyList(),
+    val friendTerritories: List<Territory> = emptyList(),
     val runPaths: List<List<GpsPoint>> = emptyList(),
     val currentUsername: String? = null,
     val isLoading: Boolean = true,
@@ -28,15 +31,33 @@ class MapViewModel(
     private val territoryRepository: TerritoryRepository,
     private val userProfileRepository: UserProfileRepository,
     private val locationService: LocationService,
-    private val runRepository: RunRepository
+    private val runRepository: RunRepository,
+    private val friendRepository: FriendRepository,
+    private val remoteTerritoryRepository: RemoteTerritoryRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapState())
     val state: StateFlow<MapState> = _state.asStateFlow()
 
+    fun loadFriendTerritories() {
+        viewModelScope.launch {
+            try {
+                val friendUids = friendRepository.getFriendUids()
+                val territories = remoteTerritoryRepository.fetchForUsers(friendUids)
+                _state.update { it.copy(friendTerritories = territories) }
+            } catch (_: Exception) {}
+        }
+    }
+
     init {
         val profile = userProfileRepository.getProfile()
         _state.update { it.copy(currentUsername = profile?.username) }
+
+        viewModelScope.launch {
+            try { userProfileRepository.syncToServer() } catch (_: Exception) {}
+        }
+
+        viewModelScope.launch { loadFriendTerritories() }
 
         territoryRepository.observeTerritories()
             .onEach { territories ->

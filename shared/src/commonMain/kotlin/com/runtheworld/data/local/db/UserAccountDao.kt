@@ -18,4 +18,7 @@ interface UserAccountDao {
 
     @Query("SELECT COUNT(*) FROM user_accounts WHERE email = :email")
     suspend fun emailExists(email: String): Int
+
+    @Query("DELETE FROM user_accounts")
+    suspend fun deleteAll()
 }

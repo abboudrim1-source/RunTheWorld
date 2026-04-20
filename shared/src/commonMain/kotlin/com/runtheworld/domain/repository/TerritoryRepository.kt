@@ -8,4 +8,5 @@ interface TerritoryRepository {
     fun observeTerritories(): Flow<List<Territory>>
     suspend fun claimTerritory(territory: Territory): AppResult<Unit>
     suspend fun deleteTerritoriesOwnedBy(username: String): AppResult<Unit>
+    suspend fun updateColorForOwner(username: String, colorHex: String): AppResult<Unit>
 }

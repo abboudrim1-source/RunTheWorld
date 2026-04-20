@@ -20,4 +20,7 @@ class TerritoryRepositoryImpl(private val dao: TerritoryDao) : TerritoryReposito
 
     override suspend fun deleteTerritoriesOwnedBy(username: String): AppResult<Unit> =
         appRunCatching { dao.deleteByOwner(username) }
+
+    override suspend fun updateColorForOwner(username: String, colorHex: String): AppResult<Unit> =
+        appRunCatching { dao.updateColorForOwner(username, colorHex) }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
@@ -34,6 +35,7 @@ fun MapScreen(
     onHistory: () -> Unit,
     onProfile: () -> Unit,
     onInbox: () -> Unit,
+    onLeaderboard: () -> Unit,
     viewModel: MapViewModel = koinViewModel(),
     friendsViewModel: FriendsViewModel = koinViewModel()
 ) {
@@ -44,13 +46,14 @@ fun MapScreen(
     LaunchedEffect(lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             friendsViewModel.loadInboxCount()
+            viewModel.loadFriendTerritories()
         }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         RunTheWorldMap(
             modifier = Modifier.fillMaxSize(),
-            territories = state.territories,
+            territories = state.territories + state.friendTerritories,
             currentUserUsername = state.currentUsername,
             currentPath = emptyList(),
             userLocation = state.userLocation,
@@ -178,7 +181,19 @@ fun MapScreen(
                 Icon(Icons.Default.DirectionsRun, contentDescription = "Start run", tint = Color.White, modifier = Modifier.size(36.dp))
             }
 
-            Spacer(Modifier.size(52.dp))
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .mapGlassSurface(CircleShape)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = onLeaderboard
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.EmojiEvents, contentDescription = "Leaderboard", tint = Color.White, modifier = Modifier.size(24.dp))
+            }
         }
     }
 }

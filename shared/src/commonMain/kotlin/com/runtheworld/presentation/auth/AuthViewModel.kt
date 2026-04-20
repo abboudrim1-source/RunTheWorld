@@ -26,6 +26,14 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     val state: StateFlow<AuthState> = _state.asStateFlow()
 
     val isSignedIn: Boolean get() = authRepository.getCurrentUser() != null
+    val currentUid: String? get() = authRepository.getCurrentUser()?.uid
+
+    suspend fun validateAndGetStartDestination(): Boolean {
+        if (!isSignedIn) return false
+        val valid = authRepository.validateSession()
+        if (!valid) authRepository.signOut()
+        return valid
+    }
 
     fun setMode(signUp: Boolean) {
         _state.update { AuthState(isSignUpMode = signUp) }

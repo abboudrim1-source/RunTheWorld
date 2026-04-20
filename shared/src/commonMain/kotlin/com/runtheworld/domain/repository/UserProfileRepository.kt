@@ -8,4 +8,6 @@ interface UserProfileRepository {
     fun isProfileSetUp(): Boolean
     fun updateStats(additionalAreaKm2: Double)
     fun clearProfile()
+    suspend fun syncToServer()
+    suspend fun fetchFromServer(uid: String): UserProfile?
 }

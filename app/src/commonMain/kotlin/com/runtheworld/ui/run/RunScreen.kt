@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.runtheworld.presentation.run.RunState
 import com.runtheworld.presentation.run.RunStatus
 import com.runtheworld.presentation.run.RunViewModel
+import com.runtheworld.presentation.run.SyncStatus
 import com.runtheworld.ui.map.RunTheWorldMap
 import com.runtheworld.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
@@ -50,8 +51,13 @@ fun RunScreen(
         if (permissionGranted) viewModel.startRun()
     }
 
-    LaunchedEffect(state.status) {
-        if (state.status == RunStatus.DONE) {
+    LaunchedEffect(state.status, state.syncStatus) {
+        if (state.status == RunStatus.DONE &&
+            (state.syncStatus == SyncStatus.SYNCED || state.syncStatus == SyncStatus.FAILED)
+        ) {
+            if (state.syncStatus == SyncStatus.FAILED) {
+                kotlinx.coroutines.delay(2_000)
+            }
             onRunFinished()
             viewModel.resetToIdle()
         }
@@ -193,6 +199,46 @@ fun RunScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = NeonOrange, strokeWidth = 2.dp)
+                }
+            }
+
+            RunStatus.DONE -> {
+                when (state.syncStatus) {
+                    SyncStatus.SYNCING -> {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
+                                .padding(bottom = 40.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(color = NeonOrange, strokeWidth = 2.dp)
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    "Syncing with server\u2026",
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+                    SyncStatus.FAILED -> {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(16.dp)
+                                .mapGlassSurface(RoundedCornerShape(14.dp))
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                state.syncMessage ?: "Server sync failed",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                    else -> Unit
                 }
             }
 

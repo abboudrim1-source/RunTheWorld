@@ -46,4 +46,7 @@ interface FriendRequestDao {
         WHERE receiverUid = :uid AND status = 'PENDING'
     """)
     suspend fun getPendingInboxCount(uid: String): Int
+
+    @Query("DELETE FROM friend_requests")
+    suspend fun deleteAll()
 }

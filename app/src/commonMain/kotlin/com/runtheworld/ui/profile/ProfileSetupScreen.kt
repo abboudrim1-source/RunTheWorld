@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +40,8 @@ fun ProfileSetupScreen(
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+
+    val pickImage = rememberImagePickerLauncher { base64 -> base64?.let { viewModel.onAvatarSelected(it) } }
 
     LaunchedEffect(Unit) { viewModel.loadExistingProfile() }
     LaunchedEffect(state.isSaved) {
@@ -71,8 +75,9 @@ fun ProfileSetupScreen(
 
             Spacer(Modifier.height(40.dp))
 
-            // Selected color avatar preview
+            // Avatar preview — tap to pick photo
             val selectedColor = parseHexColor(state.selectedColorHex)
+            val avatarBitmap = rememberBase64Bitmap(state.avatarBase64)
             Box(
                 modifier = Modifier
                     .size(88.dp)
@@ -80,32 +85,38 @@ fun ProfileSetupScreen(
                     .clip(CircleShape)
                     .background(
                         androidx.compose.ui.graphics.Brush.radialGradient(
-                            colors = listOf(
-                                selectedColor,
-                                selectedColor.copy(alpha = 0.7f)
-                            )
+                            colors = listOf(selectedColor, selectedColor.copy(alpha = 0.7f))
                         )
-                    ),
+                    )
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { pickImage() },
                 contentAlignment = Alignment.Center
             ) {
-                val initial = state.displayName.firstOrNull()?.uppercaseChar()
-                    ?: state.username.firstOrNull()?.uppercaseChar()
-                if (initial != null) {
-                    Text(
-                        text = initial.toString(),
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
+                if (avatarBitmap != null) {
+                    androidx.compose.foundation.Image(
+                        bitmap = avatarBitmap,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(44.dp)
-                    )
+                    val initial = state.displayName.firstOrNull()?.uppercaseChar()
+                        ?: state.username.firstOrNull()?.uppercaseChar()
+                    if (initial != null) {
+                        Text(initial.toString(), fontSize = 36.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                    } else {
+                        Icon(Icons.Default.AddAPhoto, contentDescription = "Add photo", tint = Color.White, modifier = Modifier.size(36.dp))
+                    }
                 }
             }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = if (state.avatarBase64 != null) "Tap to change photo" else "Tap to add photo",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.4f)
+            )
 
             Spacer(Modifier.height(36.dp))
 
