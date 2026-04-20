@@ -1,9 +1,13 @@
 package com.runtheworld.ui.leaderboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,6 +45,8 @@ fun LeaderboardScreen(
 
     AppBackground {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+
+            // Header
             Row(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -49,11 +56,44 @@ fun LeaderboardScreen(
                 }
                 Spacer(Modifier.width(4.dp))
                 GradientText(
-                    text = "Leaderboard",
+                    text = "LEADERBOARD",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold
                 )
             }
+
+            // City tabs
+            val allCities = listOf(null) + state.cities  // null = Global
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                allCities.forEach { city ->
+                    val selected = state.selectedCity == city
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(if (selected) NeonOrange else Color.White.copy(alpha = 0.08f))
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { viewModel.selectCity(city) }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = city ?: "Global",
+                            color = if (selected) Color.Black else Color.White.copy(alpha = 0.7f),
+                            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Normal,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
 
             when {
                 state.isLoading -> {
@@ -92,7 +132,13 @@ fun LeaderboardScreen(
 
                 state.entries.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No runners yet.", color = Color.White.copy(alpha = 0.45f))
+                        Text(
+                            if (state.selectedCity != null)
+                                "No runners in ${state.selectedCity} yet"
+                            else
+                                "No runners yet",
+                            color = Color.White.copy(alpha = 0.45f)
+                        )
                     }
                 }
 
@@ -103,7 +149,7 @@ fun LeaderboardScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         items(state.entries) { entry ->
-                            LeaderboardRow(entry = entry)
+                            LeaderboardRow(entry = entry, showCity = state.selectedCity == null)
                         }
                     }
                 }
@@ -113,15 +159,15 @@ fun LeaderboardScreen(
 }
 
 @Composable
-private fun LeaderboardRow(entry: LeaderboardEntry) {
+private fun LeaderboardRow(entry: LeaderboardEntry, showCity: Boolean) {
     val rankColor = when (entry.rank) {
-        1    -> Color(0xFFFFD700L) // gold
-        2    -> Color(0xFFC0C0C0L) // silver
-        3    -> Color(0xFFCD7F32L) // bronze
+        1    -> Color(0xFFFFD700L)
+        2    -> Color(0xFFC0C0C0L)
+        3    -> Color(0xFFCD7F32L)
         else -> Color.White.copy(alpha = 0.5f)
     }
     val dotColor = entry.colorHex.toComposeColor()
-    val areaParts = (entry.totalAreaKm2 * 100).toLong().let { v ->
+    val areaText = (entry.totalAreaKm2 * 100).toLong().let { v ->
         "${v / 100}.${(v % 100).toString().padStart(2, '0')} km\u00B2"
     }
 
@@ -140,37 +186,20 @@ private fun LeaderboardRow(entry: LeaderboardEntry) {
             fontSize = 18.sp,
             modifier = Modifier.width(40.dp)
         )
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .background(dotColor, CircleShape)
-        )
+        Box(modifier = Modifier.size(10.dp).background(dotColor, CircleShape))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = entry.username,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = "${entry.runCount} run${if (entry.runCount != 1) "s" else ""}",
-                color = Color.White.copy(alpha = 0.45f),
-                style = MaterialTheme.typography.labelSmall
-            )
+            Text(entry.username, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+            val subtitle = buildString {
+                append("${entry.runCount} run${if (entry.runCount != 1) "s" else ""}")
+                if (showCity && entry.city != null) append(" · ${entry.city}")
+            }
+            Text(subtitle, color = Color.White.copy(alpha = 0.45f), style = MaterialTheme.typography.labelSmall)
         }
-        Text(
-            text = areaParts,
-            color = NeonOrange,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Text(areaText, color = NeonOrange, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 private fun String.toComposeColor(): Color = try {
     val hex = removePrefix("#")
-    val argbHex = if (hex.length == 6) "FF$hex" else hex
-    Color(argbHex.toLong(16))
-} catch (_: Exception) {
-    NeonOrange
-}
+    Color(("FF$hex").toLong(16))
+} catch (_: Exception) { NeonOrange }

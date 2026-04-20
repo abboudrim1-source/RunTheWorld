@@ -18,6 +18,7 @@ data class ProfileState(
     val totalAreaKm2: Double = 0.0,
     val runCount: Int = 0,
     val avatarBase64: String? = null,
+    val city: String = "",
     val isSaved: Boolean = false,
     val error: String? = null
 )
@@ -39,6 +40,10 @@ class ProfileViewModel(
 
     fun onAvatarSelected(base64: String) {
         _state.update { it.copy(avatarBase64 = base64) }
+    }
+
+    fun onCityChange(value: String) {
+        _state.update { it.copy(city = value) }
     }
 
     fun onUsernameChange(value: String) {
@@ -69,7 +74,8 @@ class ProfileViewModel(
                         colorHex     = _state.value.selectedColorHex,
                         totalAreaKm2 = profile?.totalAreaKm2 ?: 0.0,
                         runCount     = profile?.runCount ?: 0,
-                        avatarBase64 = _state.value.avatarBase64
+                        avatarBase64 = _state.value.avatarBase64,
+                        city         = _state.value.city.trim().ifBlank { null }
                     )
                 )
                 territoryRepository.updateColorForOwner(username, _state.value.selectedColorHex)
@@ -101,6 +107,7 @@ class ProfileViewModel(
                 totalAreaKm2     = profile.totalAreaKm2,
                 runCount         = profile.runCount,
                 avatarBase64     = profile.avatarBase64,
+                city             = profile.city ?: "",
                 isSaved          = false
             )
         }

@@ -11,6 +11,7 @@ object Profiles : Table("profiles") {
     val totalAreaKm2 = double("total_area_km2").default(0.0)
     val runCount     = integer("run_count").default(0)
     val avatarBase64 = text("avatar_base64").nullable()
+    val city         = varchar("city", 128).nullable()
     override val primaryKey = PrimaryKey(uid)
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -152,6 +153,22 @@ fun ProfileSetupScreen(
                     },
                     isError = state.error != null,
                     supportingText = state.error?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    colors = profileFieldColors(),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // City
+                OutlinedTextField(
+                    value = state.city,
+                    onValueChange = viewModel::onCityChange,
+                    label = { Text("City") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(Icons.Default.LocationCity, null, tint = NeonOrange.copy(alpha = 0.8f))
+                    },
                     colors = profileFieldColors(),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()

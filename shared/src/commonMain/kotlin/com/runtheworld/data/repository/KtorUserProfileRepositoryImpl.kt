@@ -19,7 +19,8 @@ data class ProfileSyncRequest(
     val colorHex: String,
     val totalAreaKm2: Double,
     val runCount: Int,
-    val avatarBase64: String? = null
+    val avatarBase64: String? = null,
+    val city: String? = null
 )
 
 class KtorUserProfileRepositoryImpl(
@@ -47,7 +48,8 @@ class KtorUserProfileRepositoryImpl(
             colorHex     = settings.getString(p + KEY_COLOR, DEFAULT_COLOR),
             totalAreaKm2 = settings.getDouble(p + KEY_TOTAL_AREA, 0.0),
             runCount     = settings.getInt(p + KEY_RUN_COUNT, 0),
-            avatarBase64 = settings.getStringOrNull(p + KEY_AVATAR)
+            avatarBase64 = settings.getStringOrNull(p + KEY_AVATAR),
+            city         = settings.getStringOrNull(p + KEY_CITY)
         )
     }
 
@@ -65,7 +67,8 @@ class KtorUserProfileRepositoryImpl(
                     colorHex     = profile.colorHex,
                     totalAreaKm2 = profile.totalAreaKm2,
                     runCount     = profile.runCount,
-                    avatarBase64 = profile.avatarBase64
+                    avatarBase64 = profile.avatarBase64,
+                    city         = profile.city
                 ))
             }
         } catch (_: Exception) {
@@ -89,6 +92,7 @@ class KtorUserProfileRepositoryImpl(
         settings.putDouble(p + KEY_TOTAL_AREA, profile.totalAreaKm2)
         settings.putInt(p + KEY_RUN_COUNT, profile.runCount)
         profile.avatarBase64?.let { settings.putString(p + KEY_AVATAR, it) }
+        profile.city?.let { settings.putString(p + KEY_CITY, it) }
 
         userProfileDao.upsert(
             UserProfileEntity(
@@ -108,6 +112,7 @@ class KtorUserProfileRepositoryImpl(
         settings.remove(p + KEY_TOTAL_AREA)
         settings.remove(p + KEY_RUN_COUNT)
         settings.remove(p + KEY_AVATAR)
+        settings.remove(p + KEY_CITY)
     }
 
     override fun updateStats(additionalAreaKm2: Double) {
@@ -128,7 +133,8 @@ class KtorUserProfileRepositoryImpl(
                 colorHex     = dto.colorHex,
                 totalAreaKm2 = dto.totalAreaKm2,
                 runCount     = dto.runCount,
-                avatarBase64 = dto.avatarBase64
+                avatarBase64 = dto.avatarBase64,
+                city         = dto.city
             )
         } catch (_: Exception) { null }
     }
@@ -146,7 +152,8 @@ class KtorUserProfileRepositoryImpl(
                     colorHex     = profile.colorHex,
                     totalAreaKm2 = profile.totalAreaKm2,
                     runCount     = profile.runCount,
-                    avatarBase64 = profile.avatarBase64
+                    avatarBase64 = profile.avatarBase64,
+                    city         = profile.city
                 ))
             }
         } catch (_: Exception) {}
@@ -159,6 +166,7 @@ class KtorUserProfileRepositoryImpl(
         private const val KEY_TOTAL_AREA   = "profile_total_area"
         private const val KEY_RUN_COUNT    = "profile_run_count"
         private const val KEY_AVATAR       = "profile_avatar"
+        private const val KEY_CITY         = "profile_city"
         private const val DEFAULT_COLOR    = "#FF5733"
     }
 }

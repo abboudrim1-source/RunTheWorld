@@ -69,7 +69,7 @@ val viewModelModule = module {
     viewModel { HistoryViewModel(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { FriendsViewModel(get()) }
-    viewModel { LeaderboardViewModel(get()) }
+    viewModel { LeaderboardViewModel(get(), get()) }
 }
 
 fun appModules(): List<Module> = listOf(platformModule, networkModule, repositoryModule, viewModelModule)

@@ -23,7 +23,8 @@
       "Bash(sqlite3 /c/Users/abbou/AndroidStudioProjects/RunTheWorld/server/runtheworld_server.db \"SELECT uid, email, login_type FROM accounts;\")",
       "Bash(where sqlite3 *)",
       "Bash(git rm *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }

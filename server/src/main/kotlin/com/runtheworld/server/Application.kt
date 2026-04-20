@@ -30,7 +30,17 @@ data class ProfileSyncRequest(
     val colorHex: String,
     val totalAreaKm2: Double,
     val runCount: Int,
-    val avatarBase64: String? = null
+    val avatarBase64: String? = null,
+    val city: String? = null
+)
+
+@Serializable
+data class LeaderboardEntryDto(
+    val username: String,
+    val area: Double,
+    val runs: Int,
+    val color: String,
+    val city: String?
 )
 
 @Serializable
@@ -215,6 +225,7 @@ fun Application.module() {
                         it[totalAreaKm2] = req.totalAreaKm2
                         it[runCount]     = req.runCount
                         if (req.avatarBase64 != null) it[avatarBase64] = req.avatarBase64
+                        if (req.city != null) it[city] = req.city
                     }
                 }
                 call.respond(HttpStatusCode.OK, mapOf("status" to "synced"))
@@ -276,7 +287,8 @@ fun Application.module() {
                 colorHex     = row[Profiles.colorHex],
                 totalAreaKm2 = row[Profiles.totalAreaKm2],
                 runCount     = row[Profiles.runCount],
-                avatarBase64 = row[Profiles.avatarBase64]
+                avatarBase64 = row[Profiles.avatarBase64],
+                city         = row[Profiles.city]
             ))
         }
 
@@ -285,14 +297,14 @@ fun Application.module() {
         post("/territories") {
             try {
                 val req = call.receive<TerritoryUploadRequest>()
-                val polygonJson = Json.encodeToString(req.polygon)
+                val encodedPolygon = Json.encodeToString(req.polygon)
                 transaction {
                     Territories.upsert {
                         it[id]            = req.id
                         it[userId]        = req.userId
                         it[ownerUsername] = req.ownerUsername
                         it[ownerColorHex] = req.ownerColorHex
-                        it[polygonJson]   = polygonJson
+                        it[polygonJson]   = encodedPolygon
                         it[claimedAt]     = req.claimedAt
                         it[areaKm2]       = req.areaKm2
                     }
@@ -358,17 +370,34 @@ fun Application.module() {
 
         // ── Leaderboard ────────────────────────────────────────────────────────
 
+        get("/leaderboard/cities") {
+            val cities = transaction {
+                Profiles.select(Profiles.city)
+                    .where { Profiles.city.isNotNull() }
+                    .mapNotNull { it[Profiles.city] }
+                    .distinct()
+                    .sorted()
+            }
+            call.respond(cities)
+        }
+
         get("/leaderboard") {
+            val cityFilter = call.request.queryParameters["city"]
             val board = transaction {
-                Profiles.selectAll()
+                val query = if (cityFilter != null)
+                    Profiles.selectAll().where { Profiles.city eq cityFilter }
+                else
+                    Profiles.selectAll()
+                query
                     .orderBy(Profiles.totalAreaKm2 to SortOrder.DESC)
-                    .limit(10)
+                    .limit(50)
                     .map { row ->
-                        mapOf(
-                            "username" to row[Profiles.username],
-                            "area"     to row[Profiles.totalAreaKm2],
-                            "runs"     to row[Profiles.runCount],
-                            "color"    to row[Profiles.colorHex]
+                        LeaderboardEntryDto(
+                            username = row[Profiles.username],
+                            area     = row[Profiles.totalAreaKm2],
+                            runs     = row[Profiles.runCount],
+                            color    = row[Profiles.colorHex],
+                            city     = row[Profiles.city]
                         )
                     }
             }
