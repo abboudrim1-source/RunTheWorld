@@ -165,9 +165,7 @@ private fun LeaderboardRow(entry: LeaderboardEntry, showCity: Boolean) {
         else -> Color.White.copy(alpha = 0.5f)
     }
     val dotColor = entry.colorHex.toComposeColor()
-    val areaText = (entry.totalAreaKm2 * 100).toLong().let { v ->
-        "${v / 100}.${(v % 100).toString().padStart(2, '0')} km²"
-    }
+    val scoreText = "${entry.totalScore} pts"
 
     Row(
         modifier = Modifier
@@ -187,13 +185,12 @@ private fun LeaderboardRow(entry: LeaderboardEntry, showCity: Boolean) {
         Box(modifier = Modifier.size(10.dp).background(dotColor, CircleShape))
         Column(modifier = Modifier.weight(1f)) {
             Text(entry.username, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-            val subtitle = buildString {
-                append("${entry.runCount} run${if (entry.runCount != 1) "s" else ""}")
-                if (showCity && entry.city != null) append(" · ${entry.city}")
+            val city = entry.city
+            if (showCity && city != null) {
+                Text(city, color = Color.White.copy(alpha = 0.45f), style = MaterialTheme.typography.labelSmall)
             }
-            Text(subtitle, color = Color.White.copy(alpha = 0.45f), style = MaterialTheme.typography.labelSmall)
         }
-        Text(areaText, color = NeonOrange, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+        Text(scoreText, color = NeonOrange, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

@@ -19,5 +19,6 @@ expect fun RunTheWorldMap(
     currentPath: List<GpsPoint>,
     userLocation: GpsPoint?,
     pastPaths: List<List<GpsPoint>> = emptyList(),
-    showMyLocationButton: Boolean = false
+    showMyLocationButton: Boolean = false,
+    userColorHex: String = "#1A73E8"
 )

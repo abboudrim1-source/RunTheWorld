@@ -19,7 +19,8 @@ actual fun RunTheWorldMap(
     currentPath: List<GpsPoint>,
     userLocation: GpsPoint?,
     pastPaths: List<List<GpsPoint>>,
-    showMyLocationButton: Boolean
+    showMyLocationButton: Boolean,
+    userColorHex: String
 ) {
     val defaultPosition = LatLng(48.8566, 2.3522)  // Paris fallback
     val cameraPositionState = rememberCameraPositionState {
@@ -59,25 +60,31 @@ actual fun RunTheWorldMap(
             )
         }
 
-        // Draw saved run paths as faded white traces
+        // Draw saved run paths — same style as active trace but slightly thinner
+        val pastPathColor = parseHexColor(userColorHex).copy(alpha = 0.75f)
         pastPaths.forEach { path ->
             if (path.size > 1) {
-                Polyline(
-                    points = path.map { LatLng(it.lat, it.lng) },
-                    color = androidx.compose.ui.graphics.Color(0x99FFFFFF),
-                    width = 6f,
-                    zIndex = 1f
-                )
+                val pts = path.map { LatLng(it.lat, it.lng) }
+                Polyline(points = pts, color = androidx.compose.ui.graphics.Color(0xFFFFFFFF), width = 16f, zIndex = 1f)
+                Polyline(points = pts, color = pastPathColor, width = 10f, zIndex = 2f)
             }
         }
 
-        // Draw the active GPS trace as a bright blue polyline
+        // Draw the active GPS trace like Google Maps directions: white border + user color on top
         if (currentPath.size > 1) {
+            val pathPoints = currentPath.map { LatLng(it.lat, it.lng) }
+            val traceColor = parseHexColor(userColorHex)
             Polyline(
-                points = currentPath.map { LatLng(it.lat, it.lng) },
-                color = androidx.compose.ui.graphics.Color(0xFF33AFFF),
-                width = 10f,
+                points = pathPoints,
+                color = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+                width = 22f,
                 zIndex = 2f
+            )
+            Polyline(
+                points = pathPoints,
+                color = traceColor,
+                width = 16f,
+                zIndex = 3f
             )
         }
     }

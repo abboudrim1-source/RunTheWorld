@@ -32,11 +32,6 @@ fun AuthScreen(
     LaunchedEffect(initialSignUpMode) { viewModel.setMode(initialSignUpMode) }
     LaunchedEffect(state.success) { if (state.success) onAuthSuccess() }
 
-    val googleLauncher = rememberGoogleSignInLauncher(
-        onSuccess = { user -> viewModel.signInWithGoogle(user.id, user.email, user.displayName) },
-        onError   = { }
-    )
-
     AppBackground {
         Column(
             modifier = Modifier
@@ -163,42 +158,6 @@ fun AuthScreen(
                     )
                 }
 
-                Spacer(Modifier.height(20.dp))
-
-                // Divider
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = Color.White.copy(alpha = 0.15f)
-                    )
-                    Text(
-                        "  or  ",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.3f)
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = Color.White.copy(alpha = 0.15f)
-                    )
-                }
-
-                Spacer(Modifier.height(20.dp))
-
-                // Google button
-                GlassButton(
-                    text = "Continue with Google",
-                    onClick = { googleLauncher() },
-                    enabled = !state.isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.AccountCircle,
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                )
             }
 
             Spacer(Modifier.height(24.dp))

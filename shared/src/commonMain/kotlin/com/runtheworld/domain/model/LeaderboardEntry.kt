@@ -5,6 +5,7 @@ data class LeaderboardEntry(
     val username: String,
     val totalAreaKm2: Double,
     val runCount: Int,
+    val totalScore: Int,
     val colorHex: String,
     val city: String? = null
 )

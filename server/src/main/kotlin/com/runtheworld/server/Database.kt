@@ -10,6 +10,7 @@ object Profiles : Table("profiles") {
     val colorHex     = varchar("color_hex", 16)
     val totalAreaKm2 = double("total_area_km2").default(0.0)
     val runCount     = integer("run_count").default(0)
+    val totalScore   = integer("total_score").default(0)
     val avatarBase64 = text("avatar_base64").nullable()
     val city         = varchar("city", 128).nullable()
     override val primaryKey = PrimaryKey(uid)
@@ -32,6 +33,7 @@ object Runs : Table("runs") {
     val distanceMeters  = double("distance_meters")
     val durationSeconds = long("duration_seconds")
     val areaKm2         = double("area_km2")
+    val score           = integer("score").default(0)
     val createdAt       = long("created_at")
     override val primaryKey = PrimaryKey(id)
 }
@@ -60,7 +62,23 @@ object DatabaseFactory {
         val dbPath = System.getenv("DB_PATH") ?: "runtheworld_server.db"
         Database.connect("jdbc:sqlite:$dbPath", "org.sqlite.JDBC")
         transaction {
-            SchemaUtils.create(Profiles, Runs, FriendRequests, Accounts, Territories)
+            SchemaUtils.createMissingTablesAndColumns(Profiles, Runs, FriendRequests, Accounts, Territories)
+        }
+        // Backfill scores for runs that were saved before the score column existed
+        transaction {
+            Runs.selectAll().where { Runs.score eq 0 }.forEach { row ->
+                val computed = kotlin.math.round(row[Runs.distanceMeters] / 10.0).toInt()
+                if (computed > 0) {
+                    Runs.update({ Runs.id eq row[Runs.id] }) { it[score] = computed }
+                }
+            }
+            // Recompute each profile's totalScore from the runs table
+            Profiles.selectAll().forEach { profile ->
+                val uid = profile[Profiles.uid]
+                val total = Runs.select(Runs.score).where { Runs.userId eq uid }
+                    .sumOf { it[Runs.score] }
+                Profiles.update({ Profiles.uid eq uid }) { it[totalScore] = total }
+            }
         }
     }
 }

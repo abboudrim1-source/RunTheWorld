@@ -36,7 +36,9 @@ data class RunState(
     val lastSavedRunId: String? = null,
     val userLocation: GpsPoint? = null,
     val syncStatus: SyncStatus = SyncStatus.IDLE,
-    val syncMessage: String? = null
+    val syncMessage: String? = null,
+    val userColorHex: String = "#1A73E8",
+    val userUsername: String? = null
 )
 
 @OptIn(ExperimentalUuidApi::class)
@@ -59,6 +61,13 @@ class RunViewModel(
         if (_state.value.status == RunStatus.RUNNING) return
         val now = currentTimeMillis()
         _state.update { RunState(status = RunStatus.RUNNING, startedAt = now) }
+        viewModelScope.launch {
+            val profile = userProfileRepository.getProfile()
+            _state.update { it.copy(
+                userColorHex = profile?.colorHex ?: "#1A73E8",
+                userUsername = profile?.username
+            ) }
+        }
 
         trackingJob = viewModelScope.launch {
             locationService.locationUpdates().collect { point ->
@@ -100,8 +109,11 @@ class RunViewModel(
 
     private suspend fun persistRun(s: RunState) {
         val profile = userProfileRepository.getProfile()
+        val ownerUsername = profile?.username ?: s.userUsername ?: "unknown"
+        val ownerColorHex = profile?.colorHex ?: s.userColorHex
         val polygon = ConvexHull.compute(s.currentPath)
         val areaKm2 = DistanceCalculator.polygonAreaKm2(polygon)
+        val score = kotlin.math.round(s.distanceMeters / 10.0).toInt()
         val runId = Uuid.random().toString()
         val now = currentTimeMillis()
 
@@ -111,6 +123,7 @@ class RunViewModel(
             endedAt = now,
             distanceMeters = s.distanceMeters,
             areaKm2 = areaKm2,
+            score = score,
             path = s.currentPath,
             claimedPolygon = polygon
         )
@@ -123,11 +136,11 @@ class RunViewModel(
 
         // 2. Save territory polygon and update local stats
         var claimedTerritory: Territory? = null
-        if (profile != null) {
+        if (ownerUsername != "unknown") {
             val territory = Territory(
                 id = runId,
-                ownerUsername = profile.username,
-                ownerColorHex = profile.colorHex,
+                ownerUsername = ownerUsername,
+                ownerColorHex = ownerColorHex,
                 polygon = polygon,
                 claimedAt = now,
                 areaKm2 = areaKm2

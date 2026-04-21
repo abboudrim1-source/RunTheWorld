@@ -126,7 +126,8 @@ fun RunScreen(
             currentUserUsername = null,
             currentPath = state.currentPath,
             userLocation = state.userLocation,
-            showMyLocationButton = true
+            showMyLocationButton = true,
+            userColorHex = state.userColorHex
         )
 
         // Back button (only when not actively running)

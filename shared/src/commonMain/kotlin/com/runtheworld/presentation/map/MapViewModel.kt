@@ -23,6 +23,7 @@ data class MapState(
     val friendTerritories: List<Territory> = emptyList(),
     val runPaths: List<List<GpsPoint>> = emptyList(),
     val currentUsername: String? = null,
+    val userColorHex: String = "#1A73E8",
     val isLoading: Boolean = true,
     val userLocation: GpsPoint? = null
 )
@@ -51,7 +52,10 @@ class MapViewModel(
 
     init {
         val profile = userProfileRepository.getProfile()
-        _state.update { it.copy(currentUsername = profile?.username) }
+        _state.update { it.copy(
+            currentUsername = profile?.username,
+            userColorHex = profile?.colorHex ?: "#1A73E8"
+        ) }
 
         viewModelScope.launch {
             try { userProfileRepository.syncToServer() } catch (_: Exception) {}

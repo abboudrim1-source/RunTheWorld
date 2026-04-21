@@ -6,6 +6,7 @@ data class Run(
     val endedAt: Long,            // epoch millis
     val distanceMeters: Double,
     val areaKm2: Double,
+    val score: Int = 0,
     val path: List<GpsPoint>,     // raw GPS trace
     val claimedPolygon: List<GpsPoint>  // convex hull of the path
 ) {

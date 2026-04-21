@@ -17,7 +17,8 @@ private data class RunUploadRequest(
     val userId: String,
     val distanceMeters: Double,
     val durationSeconds: Long,
-    val areaKm2: Double
+    val areaKm2: Double,
+    val score: Int
 )
 
 class KtorRunSyncRepositoryImpl(
@@ -37,7 +38,8 @@ class KtorRunSyncRepositoryImpl(
                 userId = uid,
                 distanceMeters = run.distanceMeters,
                 durationSeconds = run.durationSeconds,
-                areaKm2 = run.areaKm2
+                areaKm2 = run.areaKm2,
+                score = run.score
             ))
         }
         if (!response.status.isSuccess()) {

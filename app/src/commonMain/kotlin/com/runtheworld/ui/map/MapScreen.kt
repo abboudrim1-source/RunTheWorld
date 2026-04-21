@@ -57,7 +57,8 @@ fun MapScreen(
             currentUserUsername = state.currentUsername,
             currentPath = emptyList(),
             userLocation = state.userLocation,
-            pastPaths = state.runPaths
+            pastPaths = state.runPaths,
+            userColorHex = state.userColorHex
         )
 
         // Inbox bell — top left with badge

@@ -14,6 +14,7 @@ data class RunEntity(
     val endedAt: Long,
     val distanceMeters: Double,
     val areaKm2: Double,
+    val score: Int = 0,
     val path: List<GpsPoint>,
     val claimedPolygon: List<GpsPoint>
 )
@@ -24,6 +25,7 @@ fun RunEntity.toDomain() = Run(
     endedAt = endedAt,
     distanceMeters = distanceMeters,
     areaKm2 = areaKm2,
+    score = score,
     path = path,
     claimedPolygon = claimedPolygon
 )
@@ -34,6 +36,7 @@ fun Run.toEntity() = RunEntity(
     endedAt = endedAt,
     distanceMeters = distanceMeters,
     areaKm2 = areaKm2,
+    score = score,
     path = path,
     claimedPolygon = claimedPolygon
 )

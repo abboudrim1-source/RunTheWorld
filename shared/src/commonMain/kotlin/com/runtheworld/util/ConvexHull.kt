@@ -32,7 +32,26 @@ object ConvexHull {
             }
             hull.addLast(point)
         }
+
+        // Degenerate case (all points collinear): fall back to bounding box
+        if (hull.size < 3) return boundingBox(points)
         return hull.toList()
+    }
+
+    private fun boundingBox(points: List<GpsPoint>): List<GpsPoint> {
+        val minLat = points.minOf { it.lat }
+        val maxLat = points.maxOf { it.lat }
+        val minLng = points.minOf { it.lng }
+        val maxLng = points.maxOf { it.lng }
+        // Expand by ~20 m so a straight-line run still produces a visible territory
+        val padLat = 0.00018
+        val padLng = 0.00022
+        return listOf(
+            GpsPoint(minLat - padLat, minLng - padLng),
+            GpsPoint(minLat - padLat, maxLng + padLng),
+            GpsPoint(maxLat + padLat, maxLng + padLng),
+            GpsPoint(maxLat + padLat, minLng - padLng)
+        )
     }
 
     /** Signed area of the parallelogram formed by vectors O->A and O->B. */

@@ -12,7 +12,7 @@ import androidx.room.TypeConverters
         UserProfileEntity::class,
         FriendRequestEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

@@ -14,6 +14,7 @@ private data class LeaderboardEntryDto(
     val username: String,
     val area: Double,
     val runs: Int,
+    val score: Int = 0,
     val color: String,
     val city: String? = null
 )
@@ -33,6 +34,7 @@ class KtorLeaderboardRepositoryImpl(
                 username     = dto.username,
                 totalAreaKm2 = dto.area,
                 runCount     = dto.runs,
+                totalScore   = dto.score,
                 colorHex     = dto.color,
                 city         = dto.city
             )

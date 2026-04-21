@@ -39,6 +39,7 @@ data class LeaderboardEntryDto(
     val username: String,
     val area: Double,
     val runs: Int,
+    val score: Int,
     val color: String,
     val city: String?
 )
@@ -49,7 +50,8 @@ data class RunSyncRequest(
     val userId: String,
     val distanceMeters: Double,
     val durationSeconds: Long,
-    val areaKm2: Double
+    val areaKm2: Double,
+    val score: Int = 0
 )
 
 @Serializable
@@ -217,15 +219,30 @@ fun Application.module() {
                     return@post call.respond(HttpStatusCode.Conflict, mapOf("error" to "Runner name already taken"))
                 }
                 transaction {
-                    Profiles.upsert {
-                        it[uid]          = req.uid
-                        it[username]     = req.username
-                        it[displayName]  = req.displayName
-                        it[colorHex]     = req.colorHex
-                        it[totalAreaKm2] = req.totalAreaKm2
-                        it[runCount]     = req.runCount
-                        if (req.avatarBase64 != null) it[avatarBase64] = req.avatarBase64
-                        if (req.city != null) it[city] = req.city
+                    val exists = Profiles.selectAll().where { Profiles.uid eq req.uid }.firstOrNull()
+                    if (exists == null) {
+                        Profiles.insert {
+                            it[uid]          = req.uid
+                            it[username]     = req.username
+                            it[displayName]  = req.displayName
+                            it[colorHex]     = req.colorHex
+                            it[totalAreaKm2] = req.totalAreaKm2
+                            it[runCount]     = req.runCount
+                            it[totalScore]   = 0
+                            if (req.avatarBase64 != null) it[avatarBase64] = req.avatarBase64
+                            if (req.city != null) it[city] = req.city
+                        }
+                    } else {
+                        Profiles.update({ Profiles.uid eq req.uid }) {
+                            it[username]     = req.username
+                            it[displayName]  = req.displayName
+                            it[colorHex]     = req.colorHex
+                            it[totalAreaKm2] = req.totalAreaKm2
+                            it[runCount]     = req.runCount
+                            if (req.avatarBase64 != null) it[avatarBase64] = req.avatarBase64
+                            if (req.city != null) it[city] = req.city
+                            // totalScore is intentionally not touched — updated only by run sync
+                        }
                     }
                 }
                 call.respond(HttpStatusCode.OK, mapOf("status" to "synced"))
@@ -344,6 +361,8 @@ fun Application.module() {
             try {
                 val req = call.receive<RunSyncRequest>()
                 println("SERVER: run sync ${req.id} for ${req.userId}")
+                val runScore = req.score.takeIf { it > 0 }
+                    ?: kotlin.math.round(req.distanceMeters / 10.0).toInt()
                 transaction {
                     Runs.upsert {
                         it[id]              = req.id
@@ -351,6 +370,7 @@ fun Application.module() {
                         it[distanceMeters]  = req.distanceMeters
                         it[durationSeconds] = req.durationSeconds
                         it[areaKm2]         = req.areaKm2
+                        it[score]           = runScore
                         it[createdAt]       = System.currentTimeMillis()
                     }
                     val row = Profiles.selectAll().where { Profiles.uid eq req.userId }.singleOrNull()
@@ -358,6 +378,7 @@ fun Application.module() {
                         Profiles.update({ Profiles.uid eq req.userId }) {
                             it[totalAreaKm2] = row[Profiles.totalAreaKm2] + req.areaKm2
                             it[runCount]     = row[Profiles.runCount] + 1
+                            it[totalScore]   = row[Profiles.totalScore] + runScore
                         }
                     }
                 }
@@ -389,13 +410,14 @@ fun Application.module() {
                 else
                     Profiles.selectAll()
                 query
-                    .orderBy(Profiles.totalAreaKm2 to SortOrder.DESC)
+                    .orderBy(Profiles.totalScore to SortOrder.DESC)
                     .limit(50)
                     .map { row ->
                         LeaderboardEntryDto(
                             username = row[Profiles.username],
                             area     = row[Profiles.totalAreaKm2],
                             runs     = row[Profiles.runCount],
+                            score    = row[Profiles.totalScore],
                             color    = row[Profiles.colorHex],
                             city     = row[Profiles.city]
                         )
