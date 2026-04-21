@@ -2,6 +2,7 @@ package com.runtheworld.presentation.leaderboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.runtheworld.data.network.LebanonGovernorates
 import com.runtheworld.domain.model.LeaderboardEntry
 import com.runtheworld.domain.repository.LeaderboardRepository
 import com.runtheworld.domain.repository.UserProfileRepository
@@ -15,7 +16,7 @@ import kotlinx.coroutines.launch
 
 data class LeaderboardState(
     val entries: List<LeaderboardEntry> = emptyList(),
-    val cities: List<String> = emptyList(),
+    val cities: List<String> = LebanonGovernorates,
     val selectedCity: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null
@@ -32,24 +33,27 @@ class LeaderboardViewModel(
     fun load() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            val cities = leaderboardRepository.getCities()
-            val userCity = userProfileRepository.getProfile()?.city
-            val selectedCity = _state.value.selectedCity ?: userCity
-            _state.update { it.copy(cities = cities, selectedCity = selectedCity) }
+            val userCity = userProfileRepository.getProfile()?.city?.takeIf { city -> city in LebanonGovernorates }
+            val selectedCity = _state.value.selectedCity?.takeIf { city -> city in LebanonGovernorates } ?: userCity
+            _state.update { it.copy(cities = LebanonGovernorates, selectedCity = selectedCity) }
             fetchLeaderboard(selectedCity)
         }
     }
 
     fun selectCity(city: String?) {
-        _state.update { it.copy(selectedCity = city) }
-        viewModelScope.launch { fetchLeaderboard(city) }
+        val normalizedCity = city?.takeIf { it in LebanonGovernorates }
+        _state.update { it.copy(selectedCity = normalizedCity) }
+        viewModelScope.launch { fetchLeaderboard(normalizedCity) }
     }
 
     private suspend fun fetchLeaderboard(city: String?) {
         _state.update { it.copy(isLoading = true, error = null) }
         leaderboardRepository.getLeaderboard(city)
             .onSuccess { entries ->
-                _state.update { it.copy(entries = entries, isLoading = false) }
+                val filtered = entries.filter { entry ->
+                    city == null || entry.city == city
+                }
+                _state.update { it.copy(entries = filtered, isLoading = false) }
             }
             .onError { err ->
                 _state.update { it.copy(isLoading = false, error = err) }

@@ -2,6 +2,7 @@ package com.runtheworld.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.runtheworld.data.network.LebanonGovernorates
 import com.runtheworld.domain.model.UserProfile
 import com.runtheworld.domain.repository.TerritoryRepository
 import com.runtheworld.domain.repository.UserProfileRepository
@@ -43,7 +44,16 @@ class ProfileViewModel(
     }
 
     fun onCityChange(value: String) {
-        _state.update { it.copy(city = value) }
+        _state.update { current ->
+            current.copy(
+                city = value,
+                error = if (value.isNotBlank() && value !in LebanonGovernorates) {
+                    "Please choose a valid Lebanese governorate"
+                } else {
+                    null
+                }
+            )
+        }
     }
 
     fun onUsernameChange(value: String) {
@@ -60,8 +70,17 @@ class ProfileViewModel(
 
     fun saveProfile() {
         val username = _state.value.username.trim()
+        val city = _state.value.city.trim()
         if (username.isBlank()) {
             _state.update { it.copy(error = "Runner name cannot be empty") }
+            return
+        }
+        if (city.isBlank()) {
+            _state.update { it.copy(error = "Please choose a governorate") }
+            return
+        }
+        if (city !in LebanonGovernorates) {
+            _state.update { it.copy(error = "Please choose a valid Lebanese governorate") }
             return
         }
         viewModelScope.launch {
@@ -75,7 +94,7 @@ class ProfileViewModel(
                         totalAreaKm2 = profile?.totalAreaKm2 ?: 0.0,
                         runCount     = profile?.runCount ?: 0,
                         avatarBase64 = _state.value.avatarBase64,
-                        city         = _state.value.city.trim().ifBlank { null }
+                        city         = city
                     )
                 )
                 territoryRepository.updateColorForOwner(username, _state.value.selectedColorHex)
@@ -108,7 +127,8 @@ class ProfileViewModel(
                 runCount         = profile.runCount,
                 avatarBase64     = profile.avatarBase64,
                 city             = profile.city ?: "",
-                isSaved          = false
+                isSaved          = false,
+                error            = null
             )
         }
     }

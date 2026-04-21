@@ -46,7 +46,6 @@ fun LeaderboardScreen(
     AppBackground {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
 
-            // Header
             Row(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -62,8 +61,7 @@ fun LeaderboardScreen(
                 )
             }
 
-            // City tabs
-            val allCities = listOf(null) + state.cities  // null = Global
+            val allCities = listOf<String?>(null) + state.cities
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,7 +114,7 @@ fun LeaderboardScreen(
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                state.error ?: "",
+                                state.error.orEmpty(),
                                 color = Color.White.copy(alpha = 0.45f),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -161,14 +159,14 @@ fun LeaderboardScreen(
 @Composable
 private fun LeaderboardRow(entry: LeaderboardEntry, showCity: Boolean) {
     val rankColor = when (entry.rank) {
-        1    -> Color(0xFFFFD700L)
-        2    -> Color(0xFFC0C0C0L)
-        3    -> Color(0xFFCD7F32L)
+        1    -> Color(0xFFFFD700)
+        2    -> Color(0xFFC0C0C0)
+        3    -> Color(0xFFCD7F32)
         else -> Color.White.copy(alpha = 0.5f)
     }
     val dotColor = entry.colorHex.toComposeColor()
     val areaText = (entry.totalAreaKm2 * 100).toLong().let { v ->
-        "${v / 100}.${(v % 100).toString().padStart(2, '0')} km\u00B2"
+        "${v / 100}.${(v % 100).toString().padStart(2, '0')} km²"
     }
 
     Row(
@@ -201,5 +199,5 @@ private fun LeaderboardRow(entry: LeaderboardEntry, showCity: Boolean) {
 
 private fun String.toComposeColor(): Color = try {
     val hex = removePrefix("#")
-    Color(("FF$hex").toLong(16))
+    Color((0xFF000000 or hex.toLong(16)))
 } catch (_: Exception) { NeonOrange }

@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.runtheworld.data.network.LebanonGovernorates
 import com.runtheworld.presentation.friends.FriendsViewModel
 import com.runtheworld.presentation.profile.AVATAR_COLORS
 import com.runtheworld.presentation.profile.ProfileViewModel
@@ -52,6 +53,10 @@ fun ProfileScreen(
     val friendsState by friendsViewModel.state.collectAsState()
     val pickImage = rememberImagePickerLauncher { base64 -> base64?.let { viewModel.onAvatarSelected(it) } }
     var showSignOutDialog by remember { mutableStateOf(false) }
+    var cityExpanded by remember { mutableStateOf(false) }
+    val errorMessage = state.error
+    val governorateError = errorMessage?.contains("governorate", ignoreCase = true) == true
+    val usernameError = errorMessage != null && !governorateError
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(lifecycle) {
@@ -100,7 +105,6 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Top bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,7 +129,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Avatar section
             val avatarColor = parseHexColor(state.selectedColorHex)
             val avatarBitmap = rememberBase64Bitmap(state.avatarBase64)
             Column(
@@ -186,7 +189,6 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                // Stats row
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -211,9 +213,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Edit form card
             GlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-
                 SectionLabel("EDIT INFO")
                 Spacer(Modifier.height(12.dp))
 
@@ -240,8 +240,10 @@ fun ProfileScreen(
                     leadingIcon = {
                         Icon(Icons.Default.Badge, null, tint = NeonOrange.copy(alpha = 0.8f))
                     },
-                    isError = state.error != null,
-                    supportingText = state.error?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    isError = usernameError,
+                    supportingText = if (usernameError) {
+                        { Text(errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error) }
+                    } else null,
                     colors = profileFieldColors(),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -249,18 +251,46 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                OutlinedTextField(
-                    value = state.city,
-                    onValueChange = viewModel::onCityChange,
-                    label = { Text("City") },
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(Icons.Default.LocationCity, null, tint = NeonOrange.copy(alpha = 0.8f))
-                    },
-                    colors = profileFieldColors(),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ExposedDropdownMenuBox(
+                    expanded = cityExpanded,
+                    onExpandedChange = { cityExpanded = !cityExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = state.city,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Governorate") },
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(Icons.Default.LocationCity, null, tint = NeonOrange.copy(alpha = 0.8f))
+                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
+                        isError = governorateError,
+                        supportingText = if (governorateError) {
+                            { Text(errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error) }
+                        } else null,
+                        colors = profileFieldColors(),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = cityExpanded,
+                        onDismissRequest = { cityExpanded = false }
+                    ) {
+                        LebanonGovernorates.forEach { governorate ->
+                            DropdownMenuItem(
+                                text = { Text(governorate) },
+                                onClick = {
+                                    viewModel.onCityChange(governorate)
+                                    cityExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(Modifier.height(24.dp))
 
@@ -304,7 +334,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Friends section
             GlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -372,7 +401,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Sign out button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
