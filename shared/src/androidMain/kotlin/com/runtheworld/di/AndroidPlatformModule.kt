@@ -1,6 +1,8 @@
 package com.runtheworld.di
 
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.runtheworld.data.local.db.AppDatabase
 import com.runtheworld.platform.AndroidLocationService
 import com.runtheworld.platform.LocationService
@@ -13,11 +15,18 @@ import org.koin.dsl.module
 actual val platformModule: Module = module {
     // Room database
     single<AppDatabase> {
+        val migration5to6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE runs ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE runs ADD COLUMN ownerColorHex TEXT NOT NULL DEFAULT '#1A73E8'")
+            }
+        }
         Room.databaseBuilder(
             context = androidContext(),
             klass = AppDatabase::class.java,
             name = AppDatabase.DATABASE_NAME
         )
+            .addMigrations(migration5to6)
             .fallbackToDestructiveMigration()
             .build()
     }

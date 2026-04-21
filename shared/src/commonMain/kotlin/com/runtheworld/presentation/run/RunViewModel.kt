@@ -109,6 +109,7 @@ class RunViewModel(
 
     private suspend fun persistRun(s: RunState) {
         val profile = userProfileRepository.getProfile()
+        val userId = userProfileRepository.getCurrentUid() ?: ""
         val ownerUsername = profile?.username ?: s.userUsername ?: "unknown"
         val ownerColorHex = profile?.colorHex ?: s.userColorHex
         val polygon = ConvexHull.compute(s.currentPath)
@@ -119,6 +120,8 @@ class RunViewModel(
 
         val run = Run(
             id = runId,
+            userId = userId,
+            ownerColorHex = ownerColorHex,
             startedAt = s.startedAt,
             endedAt = now,
             distanceMeters = s.distanceMeters,

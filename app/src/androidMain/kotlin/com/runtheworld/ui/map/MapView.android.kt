@@ -7,6 +7,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.runtheworld.domain.model.GpsPoint
+import com.runtheworld.domain.model.Run
 import com.runtheworld.domain.model.Territory
 import com.runtheworld.ui.theme.parseHexColor
 import androidx.compose.ui.graphics.toArgb
@@ -18,8 +19,10 @@ actual fun RunTheWorldMap(
     currentUserUsername: String?,
     currentPath: List<GpsPoint>,
     userLocation: GpsPoint?,
-    pastPaths: List<List<GpsPoint>>,
+    pastRuns: List<Run>,
     showMyLocationButton: Boolean,
+    followUser: Boolean,
+    recenterTrigger: Int,
     userColorHex: String
 ) {
     val defaultPosition = LatLng(48.8566, 2.3522)  // Paris fallback
@@ -30,12 +33,36 @@ actual fun RunTheWorldMap(
         )
     }
 
-    // Follow the user when a new location arrives
+    // Center on first location only
+    var centered by remember { mutableStateOf(false) }
     LaunchedEffect(userLocation) {
-        userLocation?.let {
+        if (!centered && userLocation != null) {
             cameraPositionState.animate(
-                CameraUpdateFactory.newLatLngZoom(LatLng(it.lat, it.lng), 15f)
+                CameraUpdateFactory.newLatLngZoom(LatLng(userLocation.lat, userLocation.lng), 15f)
             )
+            centered = true
+        }
+    }
+
+    // Follow user during active run
+    LaunchedEffect(userLocation) {
+        if (followUser) {
+            userLocation?.let {
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngZoom(LatLng(it.lat, it.lng), 15f)
+                )
+            }
+        }
+    }
+
+    // Manual recenter when button pressed
+    LaunchedEffect(recenterTrigger) {
+        if (recenterTrigger > 0) {
+            userLocation?.let {
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngZoom(LatLng(it.lat, it.lng), 15f)
+                )
+            }
         }
     }
 
@@ -60,13 +87,13 @@ actual fun RunTheWorldMap(
             )
         }
 
-        // Draw saved run paths — same style as active trace but slightly thinner
-        val pastPathColor = parseHexColor(userColorHex).copy(alpha = 0.75f)
-        pastPaths.forEach { path ->
-            if (path.size > 1) {
-                val pts = path.map { LatLng(it.lat, it.lng) }
+        // Draw saved run paths — each run uses its owner's color
+        pastRuns.forEach { run ->
+            if (run.path.size > 1) {
+                val pts = run.path.map { LatLng(it.lat, it.lng) }
+                val color = parseHexColor(run.ownerColorHex).copy(alpha = 0.75f)
                 Polyline(points = pts, color = androidx.compose.ui.graphics.Color(0xFFFFFFFF), width = 16f, zIndex = 1f)
-                Polyline(points = pts, color = pastPathColor, width = 10f, zIndex = 2f)
+                Polyline(points = pts, color = color, width = 10f, zIndex = 2f)
             }
         }
 

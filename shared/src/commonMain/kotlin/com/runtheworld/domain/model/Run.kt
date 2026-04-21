@@ -2,6 +2,8 @@ package com.runtheworld.domain.model
 
 data class Run(
     val id: String,
+    val userId: String = "",
+    val ownerColorHex: String = "#1A73E8",
     val startedAt: Long,          // epoch millis
     val endedAt: Long,            // epoch millis
     val distanceMeters: Double,

@@ -127,6 +127,7 @@ fun RunScreen(
             currentPath = state.currentPath,
             userLocation = state.userLocation,
             showMyLocationButton = true,
+            followUser = true,
             userColorHex = state.userColorHex
         )
 

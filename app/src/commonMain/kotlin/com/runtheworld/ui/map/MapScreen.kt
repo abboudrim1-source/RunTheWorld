@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,6 +42,7 @@ fun MapScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val friendsState by friendsViewModel.state.collectAsState()
+    var recenterTrigger by remember { mutableIntStateOf(0) }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(lifecycle) {
@@ -57,7 +59,8 @@ fun MapScreen(
             currentUserUsername = state.currentUsername,
             currentPath = emptyList(),
             userLocation = state.userLocation,
-            pastPaths = state.runPaths,
+            pastRuns = state.runs,
+            recenterTrigger = recenterTrigger,
             userColorHex = state.userColorHex
         )
 
@@ -141,6 +144,24 @@ fun MapScreen(
                     letterSpacing = 0.5.sp
                 )
             }
+        }
+
+        // Recenter button — bottom right, above action row
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(bottom = 120.dp, end = 16.dp)
+                .size(44.dp)
+                .mapGlassSurface(CircleShape)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = { recenterTrigger++ }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.MyLocation, contentDescription = "Recenter", tint = Color.White, modifier = Modifier.size(22.dp))
         }
 
         // Bottom action row

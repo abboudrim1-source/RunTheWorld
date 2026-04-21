@@ -3,6 +3,7 @@ package com.runtheworld.presentation.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.runtheworld.domain.model.GpsPoint
+import com.runtheworld.domain.model.Run
 import com.runtheworld.domain.model.Territory
 import com.runtheworld.domain.repository.FriendRepository
 import com.runtheworld.domain.repository.RemoteTerritoryRepository
@@ -21,7 +22,7 @@ import kotlinx.coroutines.launch
 data class MapState(
     val territories: List<Territory> = emptyList(),
     val friendTerritories: List<Territory> = emptyList(),
-    val runPaths: List<List<GpsPoint>> = emptyList(),
+    val runs: List<Run> = emptyList(),
     val currentUsername: String? = null,
     val userColorHex: String = "#1A73E8",
     val isLoading: Boolean = true,
@@ -39,6 +40,14 @@ class MapViewModel(
 
     private val _state = MutableStateFlow(MapState())
     val state: StateFlow<MapState> = _state.asStateFlow()
+
+    private suspend fun restoreOwnTerritoriesIfEmpty() {
+        try {
+            val uid = userProfileRepository.getCurrentUid() ?: return
+            val serverTerritories = remoteTerritoryRepository.fetchForUsers(setOf(uid))
+            serverTerritories.forEach { territoryRepository.claimTerritory(it) }
+        } catch (_: Exception) {}
+    }
 
     fun loadFriendTerritories() {
         viewModelScope.launch {
@@ -62,6 +71,7 @@ class MapViewModel(
         }
 
         viewModelScope.launch { loadFriendTerritories() }
+        viewModelScope.launch { restoreOwnTerritoriesIfEmpty() }
 
         territoryRepository.observeTerritories()
             .onEach { territories ->
@@ -71,7 +81,7 @@ class MapViewModel(
 
         runRepository.observeRuns()
             .onEach { runs ->
-                _state.update { it.copy(runPaths = runs.map { r -> r.path }) }
+                _state.update { it.copy(runs = runs) }
             }
             .launchIn(viewModelScope)
 

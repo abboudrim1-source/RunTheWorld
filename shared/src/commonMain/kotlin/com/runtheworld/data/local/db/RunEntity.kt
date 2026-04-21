@@ -10,6 +10,8 @@ import com.runtheworld.domain.model.Run
 @TypeConverters(Converters::class)
 data class RunEntity(
     @PrimaryKey val id: String,
+    val userId: String = "",
+    val ownerColorHex: String = "#1A73E8",
     val startedAt: Long,
     val endedAt: Long,
     val distanceMeters: Double,
@@ -21,6 +23,8 @@ data class RunEntity(
 
 fun RunEntity.toDomain() = Run(
     id = id,
+    userId = userId,
+    ownerColorHex = ownerColorHex,
     startedAt = startedAt,
     endedAt = endedAt,
     distanceMeters = distanceMeters,
@@ -32,6 +36,8 @@ fun RunEntity.toDomain() = Run(
 
 fun Run.toEntity() = RunEntity(
     id = id,
+    userId = userId,
+    ownerColorHex = ownerColorHex,
     startedAt = startedAt,
     endedAt = endedAt,
     distanceMeters = distanceMeters,

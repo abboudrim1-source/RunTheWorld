@@ -36,6 +36,8 @@ class KtorUserProfileRepositoryImpl(
         return "${uid}_"
     }
 
+    override fun getCurrentUid(): String? = settings.getStringOrNull("auth_uid")
+
     override fun isProfileSetUp(): Boolean =
         settings.getStringOrNull(prefix() + KEY_USERNAME) != null
 

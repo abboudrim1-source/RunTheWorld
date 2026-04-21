@@ -20,6 +20,8 @@ class UserProfileRepositoryImpl(
     override fun isProfileSetUp(): Boolean =
         settings.getStringOrNull(prefix() + KEY_USERNAME) != null
 
+    override fun getCurrentUid(): String? = settings.getStringOrNull("auth_uid")
+
     override fun getProfile(): UserProfile? {
         val p = prefix()
         val username = settings.getStringOrNull(p + KEY_USERNAME) ?: return null

@@ -25,7 +25,24 @@
       "Bash(git rm *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "Bash(echo \"Server starting in background with PID $!\")",
+      "Bash(sqlite3 *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python /c/Users/abbou/AndroidStudioProjects/RunTheWorld/server/runtheworld_server.db)",
+      "Read(//c/Users/abbou/AppData/Local/Programs/Python//**)",
+      "Bash(netstat -ano)",
+      "Bash(awk '{print $5}')",
+      "Bash(/c/Users/abbou/AppData/Local/Programs/Python/Python314/python *)",
+      "Bash(adb shell *)",
+      "Bash(adb devices *)",
+      "Bash(/c/Users/abbou/AppData/Local/Android/Sdk/platform-tools/adb shell *)",
+      "Bash(/c/Users/abbou/AppData/Local/Android/Sdk/platform-tools/adb devices *)",
+      "Bash(\"/c/Users/abbou/AppData/Local/Android/Sdk/platform-tools/adb\" shell *)",
+      "Bash(findstr :8080)",
+      "Bash(taskkill *)",
+      "Bash(cmd *)",
+      "PowerShell(Stop-Process *)"
     ]
   }
 }
